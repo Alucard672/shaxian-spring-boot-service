@@ -2,7 +2,7 @@ package com.shaxian.appservice.sales;
 
 import com.shaxian.entity.SalesOrder;
 import com.shaxian.entity.SalesOrderItem;
-import com.shaxian.service.SalesService;
+import com.shaxian.service.sales.SalesService;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;

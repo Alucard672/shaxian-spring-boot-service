@@ -2,7 +2,7 @@ package com.shaxian.appservice.purchase;
 
 import com.shaxian.entity.PurchaseOrder;
 import com.shaxian.entity.PurchaseOrderItem;
-import com.shaxian.service.PurchaseService;
+import com.shaxian.service.purchase.PurchaseService;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;

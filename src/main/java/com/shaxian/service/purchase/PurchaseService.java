@@ -1,4 +1,4 @@
-package com.shaxian.service;
+package com.shaxian.service.purchase;
 
 import com.shaxian.entity.PurchaseOrder;
 import com.shaxian.entity.PurchaseOrderItem;

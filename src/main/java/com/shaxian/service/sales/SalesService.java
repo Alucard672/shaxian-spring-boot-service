@@ -1,6 +1,5 @@
-package com.shaxian.service;
+package com.shaxian.service.sales;
 
-import com.shaxian.entity.Batch;
 import com.shaxian.entity.SalesOrder;
 import com.shaxian.entity.SalesOrderItem;
 import com.shaxian.repository.BatchRepository;
