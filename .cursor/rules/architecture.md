@@ -95,3 +95,41 @@ alwaysApply: true
   - AppService 直接调用 Repository（如有必须场景，应评估是否抽到 Service）
   - 反向依赖（如 Service 依赖 AppService）
 - 主要业务逻辑必须放在 `service` 层，`appservice` 仅做**编排和事务/流程控制**。
+
+---
+
+### 6. 返回值、DTO/VO 与 Entity 使用约定
+
+**总体要求**
+
+- 对外暴露的接口（尤其是 HTTP 接口）以及各层之间的公共方法，**必须使用明确的 DTO/VO 类型作为返回值**，避免语义不清。
+- 除极少数基础库/工具方法外，**严禁通过 `Map` / `List<Map<...>>` 等弱类型结构返回业务结果**。
+- **避免直接使用 Entity 作为接口返回值**，尤其不允许将持久化实体原样透出到 Controller/外部调用方。
+
+**Controller 层**
+
+- Controller 暴露的所有 HTTP 接口返回值：
+  - 数据部分必须是 DTO/VO（或基础类型、枚举），**不得是 Entity、`Map` 或 `List<Map>`**。
+  - 如项目中有统一响应包装（如 `Result<T>`），`T` 也必须是 DTO/VO，而不是 Entity 或 `Map`。
+
+**AppService 层**
+
+- AppService 对 Controller 或其他上层调用方暴露的方法：
+  - 返回值必须是 DTO/VO 或基础类型、枚举。
+  - **禁止使用 `Map<String, Object>`、`List<Map<String, Object>>` 等形式作为业务结果返回值**。
+  - 不得直接返回 Entity；如确需使用实体数据，应在 AppService 内部转换为对应 DTO/VO 后再返回。
+- AppService 内部私有方法如返回 Entity，仅用于本类内部组合逻辑时可以接受，但不得穿透到 Controller。
+
+**Service 层**
+
+- Service 对 AppService 暴露的方法：
+  - 应优先返回**明确的业务类型**：领域对象（非持久化泄漏的抽象）、值对象或专门定义的 DTO/VO。
+  - **严禁以 `Map` / `List<Map<...>>` 承载主要业务语义**，不得以此作为对 AppService 的返回结果。
+-  - **禁止**直接返回任何持久化 Entity 给 AppService；如需使用实体数据，必须在 Service 内部先转换为对应的业务对象/DTO/VO 后再返回。
+- Service 内部私有方法如通过 Entity 在同一 Service 内部传递，可视为实现细节，但不应通过公共接口向上层泄漏。
+
+**Repository 层**
+
+- Repository 可以返回 Entity 或用于持久化的投影对象，但：
+  - Entity 只能在 `service` / `appservice` 内部消费与转换，**不得原样作为接口返回给 Controller 或外部调用方**。
+  - 如需面向上层或外部输出数据，必须在上层转换为 DTO/VO。
