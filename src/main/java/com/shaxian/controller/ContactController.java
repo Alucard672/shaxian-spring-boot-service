@@ -1,118 +1,89 @@
 package com.shaxian.controller;
 
+import com.shaxian.api.ApiResponse;
+import com.shaxian.appservice.contact.ContactAppService;
 import com.shaxian.entity.Customer;
 import com.shaxian.entity.Supplier;
-import com.shaxian.repository.CustomerRepository;
-import com.shaxian.repository.SupplierRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/contacts")
 public class ContactController {
-    private final CustomerRepository customerRepository;
-    private final SupplierRepository supplierRepository;
 
-    public ContactController(
-            CustomerRepository customerRepository,
-            SupplierRepository supplierRepository) {
-        this.customerRepository = customerRepository;
-        this.supplierRepository = supplierRepository;
+    private final ContactAppService contactAppService;
+
+    public ContactController(ContactAppService contactAppService) {
+        this.contactAppService = contactAppService;
     }
-
 
     // ========== 客户管理 ==========
     @GetMapping("/customers")
-    public ResponseEntity<List<Customer>> getAllCustomers() {
-        return ResponseEntity.ok(customerRepository.findAll());
+    public ResponseEntity<ApiResponse<List<Customer>>> getAllCustomers() {
+        List<Customer> customers = contactAppService.listCustomers();
+        return ResponseEntity.ok(ApiResponse.ok(customers));
     }
 
     @GetMapping("/customers/{id}")
-    public ResponseEntity<Customer> getCustomer(@PathVariable Long id) {
-        return customerRepository.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<ApiResponse<Customer>> getCustomer(@PathVariable Long id) {
+        return contactAppService.findCustomer(id)
+                .map(customer -> ResponseEntity.ok(ApiResponse.ok(customer)))
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(ApiResponse.fail("客户不存在")));
     }
 
     @PostMapping("/customers")
-    public ResponseEntity<Customer> createCustomer(@RequestBody Customer customer) {
-        if (customerRepository.existsByCode(customer.getCode())) {
-            return ResponseEntity.badRequest().build();
-        }
-        return ResponseEntity.status(HttpStatus.CREATED).body(customerRepository.save(customer));
+    public ResponseEntity<ApiResponse<Customer>> createCustomer(@RequestBody Customer customer) {
+        Customer created = contactAppService.createCustomer(customer);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(created));
     }
 
     @PutMapping("/customers/{id}")
-    public ResponseEntity<Customer> updateCustomer(@PathVariable Long id, @RequestBody Customer customer) {
-        if (!customerRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-        Customer existing = customerRepository.findById(id).orElseThrow();
-        if (!existing.getCode().equals(customer.getCode()) && 
-            customerRepository.existsByCode(customer.getCode())) {
-            return ResponseEntity.badRequest().build();
-        }
-        customer.setId(id);
-        customer.setCreatedAt(existing.getCreatedAt());
-        return ResponseEntity.ok(customerRepository.save(customer));
+    public ResponseEntity<ApiResponse<Customer>> updateCustomer(@PathVariable Long id, @RequestBody Customer customer) {
+        Customer updated = contactAppService.updateCustomer(id, customer);
+        return ResponseEntity.ok(ApiResponse.ok(updated));
     }
 
     @DeleteMapping("/customers/{id}")
-    public ResponseEntity<Void> deleteCustomer(@PathVariable Long id) {
-        if (!customerRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-        customerRepository.deleteById(id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<ApiResponse<Void>> deleteCustomer(@PathVariable Long id) {
+        contactAppService.deleteCustomer(id);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(ApiResponse.ok(null));
     }
 
     // ========== 供应商管理 ==========
     @GetMapping("/suppliers")
-    public ResponseEntity<List<Supplier>> getAllSuppliers() {
-        return ResponseEntity.ok(supplierRepository.findAll());
+    public ResponseEntity<ApiResponse<List<Supplier>>> getAllSuppliers() {
+        List<Supplier> suppliers = contactAppService.listSuppliers();
+        return ResponseEntity.ok(ApiResponse.ok(suppliers));
     }
 
     @GetMapping("/suppliers/{id}")
-    public ResponseEntity<Supplier> getSupplier(@PathVariable Long id) {
-        return supplierRepository.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<ApiResponse<Supplier>> getSupplier(@PathVariable Long id) {
+        return contactAppService.findSupplier(id)
+                .map(supplier -> ResponseEntity.ok(ApiResponse.ok(supplier)))
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(ApiResponse.fail("供应商不存在")));
     }
 
     @PostMapping("/suppliers")
-    public ResponseEntity<Supplier> createSupplier(@RequestBody Supplier supplier) {
-        if (supplierRepository.existsByCode(supplier.getCode())) {
-            return ResponseEntity.badRequest().build();
-        }
-        return ResponseEntity.status(HttpStatus.CREATED).body(supplierRepository.save(supplier));
+    public ResponseEntity<ApiResponse<Supplier>> createSupplier(@RequestBody Supplier supplier) {
+        Supplier created = contactAppService.createSupplier(supplier);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(created));
     }
 
     @PutMapping("/suppliers/{id}")
-    public ResponseEntity<Supplier> updateSupplier(@PathVariable Long id, @RequestBody Supplier supplier) {
-        if (!supplierRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-        Supplier existing = supplierRepository.findById(id).orElseThrow();
-        if (!existing.getCode().equals(supplier.getCode()) && 
-            supplierRepository.existsByCode(supplier.getCode())) {
-            return ResponseEntity.badRequest().build();
-        }
-        supplier.setId(id);
-        supplier.setCreatedAt(existing.getCreatedAt());
-        return ResponseEntity.ok(supplierRepository.save(supplier));
+    public ResponseEntity<ApiResponse<Supplier>> updateSupplier(@PathVariable Long id, @RequestBody Supplier supplier) {
+        Supplier updated = contactAppService.updateSupplier(id, supplier);
+        return ResponseEntity.ok(ApiResponse.ok(updated));
     }
 
     @DeleteMapping("/suppliers/{id}")
-    public ResponseEntity<Void> deleteSupplier(@PathVariable Long id) {
-        if (!supplierRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-        supplierRepository.deleteById(id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<ApiResponse<Void>> deleteSupplier(@PathVariable Long id) {
+        contactAppService.deleteSupplier(id);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(ApiResponse.ok(null));
     }
 }
 

@@ -1,6 +1,5 @@
 package com.shaxian.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shaxian.entity.DyeingOrder;
 import com.shaxian.entity.DyeingOrderItem;
 import com.shaxian.repository.DyeingOrderItemRepository;
@@ -21,15 +20,12 @@ import java.util.Optional;
 public class DyeingController {
     private final DyeingOrderRepository dyeingOrderRepository;
     private final DyeingOrderItemRepository dyeingOrderItemRepository;
-    private final ObjectMapper objectMapper;
 
     public DyeingController(
             DyeingOrderRepository dyeingOrderRepository,
-            DyeingOrderItemRepository dyeingOrderItemRepository,
-            ObjectMapper objectMapper) {
+            DyeingOrderItemRepository dyeingOrderItemRepository) {
         this.dyeingOrderRepository = dyeingOrderRepository;
         this.dyeingOrderItemRepository = dyeingOrderItemRepository;
-        this.objectMapper = objectMapper;
     }
 
 
