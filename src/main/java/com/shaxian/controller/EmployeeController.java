@@ -2,6 +2,8 @@ package com.shaxian.controller;
 
 import com.shaxian.api.ApiResponse;
 import com.shaxian.appservice.employee.EmployeeAppService;
+import com.shaxian.dto.employee.request.CreateEmployeeRequest;
+import com.shaxian.dto.employee.request.UpdateEmployeeRequest;
 import com.shaxian.entity.Employee;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,15 +36,15 @@ public class EmployeeController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<Employee>> createEmployee(@RequestBody Employee employee) {
-        Employee created = employeeAppService.createEmployee(employee);
+    public ResponseEntity<ApiResponse<Employee>> createEmployee(@RequestBody CreateEmployeeRequest request) {
+        Employee created = employeeAppService.createEmployee(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(created));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<Employee>> updateEmployee(@PathVariable Long id, @RequestBody Employee employee) {
+    public ResponseEntity<ApiResponse<Employee>> updateEmployee(@PathVariable Long id, @RequestBody UpdateEmployeeRequest request) {
         try {
-            Employee updated = employeeAppService.updateEmployee(id, employee);
+            Employee updated = employeeAppService.updateEmployee(id, request);
             return ResponseEntity.ok(ApiResponse.ok(updated));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)

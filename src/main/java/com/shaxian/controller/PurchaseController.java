@@ -3,14 +3,12 @@ package com.shaxian.controller;
 import com.shaxian.api.ApiResponse;
 import com.shaxian.appservice.purchase.PurchaseAppService;
 import com.shaxian.entity.PurchaseOrder;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/purchases")
@@ -24,12 +22,14 @@ public class PurchaseController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<PurchaseOrder>>> getAllPurchases(
-            @RequestParam(required = false) String status,
-            @RequestParam(required = false) String supplierId,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
-        Long supplier = supplierId != null ? Long.parseLong(supplierId) : null;
-        List<PurchaseOrder> orders = purchaseAppService.listPurchases(status, supplier, startDate, endDate);
+            @RequestParam(required = false) Integer pageNo,
+            @RequestParam(required = false) Integer pageSize,
+            @RequestBody(required = false) com.shaxian.dto.purchase.request.PurchaseOrderQueryRequest request) {
+        String status = request != null ? request.getStatus() : null;
+        Long supplierId = request != null ? request.getSupplierId() : null;
+        LocalDate startDate = request != null ? request.getStartDate() : null;
+        LocalDate endDate = request != null ? request.getEndDate() : null;
+        List<PurchaseOrder> orders = purchaseAppService.listPurchases(status, supplierId, startDate, endDate);
         return ResponseEntity.ok(ApiResponse.ok(orders));
     }
 
@@ -42,13 +42,13 @@ public class PurchaseController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<PurchaseOrder>> createPurchase(@RequestBody Map<String, Object> request) {
+    public ResponseEntity<ApiResponse<PurchaseOrder>> createPurchase(@RequestBody com.shaxian.dto.purchase.request.CreatePurchaseOrderRequest request) {
         PurchaseOrder created = purchaseAppService.createPurchase(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(created));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<PurchaseOrder>> updatePurchase(@PathVariable Long id, @RequestBody Map<String, Object> request) {
+    public ResponseEntity<ApiResponse<PurchaseOrder>> updatePurchase(@PathVariable Long id, @RequestBody com.shaxian.dto.purchase.request.UpdatePurchaseOrderRequest request) {
         PurchaseOrder updated = purchaseAppService.updatePurchase(id, request);
         return ResponseEntity.ok(ApiResponse.ok(updated));
     }

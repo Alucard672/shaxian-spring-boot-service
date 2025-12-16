@@ -2,6 +2,12 @@ package com.shaxian.controller;
 
 import com.shaxian.api.ApiResponse;
 import com.shaxian.appservice.product.ProductAppService;
+import com.shaxian.dto.product.request.CreateBatchRequest;
+import com.shaxian.dto.product.request.CreateColorRequest;
+import com.shaxian.dto.product.request.CreateProductRequest;
+import com.shaxian.dto.product.request.UpdateBatchRequest;
+import com.shaxian.dto.product.request.UpdateColorRequest;
+import com.shaxian.dto.product.request.UpdateProductRequest;
 import com.shaxian.entity.Batch;
 import com.shaxian.entity.Color;
 import com.shaxian.entity.Product;
@@ -36,14 +42,14 @@ public class ProductController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<Product>> createProduct(@RequestBody Product product) {
-        Product created = productAppService.createProduct(product);
+    public ResponseEntity<ApiResponse<Product>> createProduct(@RequestBody CreateProductRequest request) {
+        Product created = productAppService.createProduct(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(created));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<Product>> updateProduct(@PathVariable Long id, @RequestBody Product product) {
-        Product updated = productAppService.updateProduct(id, product);
+    public ResponseEntity<ApiResponse<Product>> updateProduct(@PathVariable Long id, @RequestBody UpdateProductRequest request) {
+        Product updated = productAppService.updateProduct(id, request);
         return ResponseEntity.ok(ApiResponse.ok(updated));
     }
 
@@ -61,14 +67,14 @@ public class ProductController {
     }
 
     @PostMapping("/{id}/colors")
-    public ResponseEntity<ApiResponse<Color>> createColor(@PathVariable Long id, @RequestBody Color color) {
-        Color created = productAppService.createColor(id, color);
+    public ResponseEntity<ApiResponse<Color>> createColor(@PathVariable Long id, @RequestBody CreateColorRequest request) {
+        Color created = productAppService.createColor(id, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(created));
     }
 
     @PutMapping("/colors/{id}")
-    public ResponseEntity<ApiResponse<Color>> updateColor(@PathVariable Long id, @RequestBody Color color) {
-        Color updated = productAppService.updateColor(id, color);
+    public ResponseEntity<ApiResponse<Color>> updateColor(@PathVariable Long id, @RequestBody UpdateColorRequest request) {
+        Color updated = productAppService.updateColor(id, request);
         return ResponseEntity.ok(ApiResponse.ok(updated));
     }
 
@@ -86,14 +92,14 @@ public class ProductController {
     }
 
     @PostMapping("/colors/{colorId}/batches")
-    public ResponseEntity<ApiResponse<Batch>> createBatch(@PathVariable Long colorId, @RequestBody Batch batch) {
-        Batch created = productAppService.createBatch(colorId, batch);
+    public ResponseEntity<ApiResponse<Batch>> createBatch(@PathVariable Long colorId, @RequestBody CreateBatchRequest request) {
+        Batch created = productAppService.createBatch(colorId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(created));
     }
 
     @PutMapping("/batches/{id}")
-    public ResponseEntity<ApiResponse<Batch>> updateBatch(@PathVariable Long id, @RequestBody Batch batch) {
-        Batch updated = productAppService.updateBatch(id, batch);
+    public ResponseEntity<ApiResponse<Batch>> updateBatch(@PathVariable Long id, @RequestBody UpdateBatchRequest request) {
+        Batch updated = productAppService.updateBatch(id, request);
         return ResponseEntity.ok(ApiResponse.ok(updated));
     }
 

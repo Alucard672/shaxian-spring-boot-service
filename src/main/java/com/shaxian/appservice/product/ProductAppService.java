@@ -1,5 +1,11 @@
 package com.shaxian.appservice.product;
 
+import com.shaxian.dto.product.request.CreateBatchRequest;
+import com.shaxian.dto.product.request.CreateColorRequest;
+import com.shaxian.dto.product.request.CreateProductRequest;
+import com.shaxian.dto.product.request.UpdateBatchRequest;
+import com.shaxian.dto.product.request.UpdateColorRequest;
+import com.shaxian.dto.product.request.UpdateProductRequest;
 import com.shaxian.entity.Batch;
 import com.shaxian.entity.Color;
 import com.shaxian.entity.Product;
@@ -71,11 +77,35 @@ public class ProductAppService {
         return productQueryService.getById(id);
     }
 
-    public Product createProduct(Product product) {
+    public Product createProduct(CreateProductRequest request) {
+        Product product = new Product();
+        product.setName(request.getName());
+        product.setCode(request.getCode());
+        product.setSpecification(request.getSpecification());
+        product.setComposition(request.getComposition());
+        product.setCount(request.getCount());
+        product.setUnit(request.getUnit() != null ? request.getUnit() : "kg");
+        if (request.getType() != null) {
+            product.setType(Product.ProductType.valueOf(request.getType()));
+        }
+        product.setIsWhiteYarn(request.getIsWhiteYarn());
+        product.setDescription(request.getDescription());
         return productCreateService.create(product);
     }
 
-    public Product updateProduct(Long id, Product product) {
+    public Product updateProduct(Long id, UpdateProductRequest request) {
+        Product product = new Product();
+        if (request.getName() != null) product.setName(request.getName());
+        if (request.getCode() != null) product.setCode(request.getCode());
+        if (request.getSpecification() != null) product.setSpecification(request.getSpecification());
+        if (request.getComposition() != null) product.setComposition(request.getComposition());
+        if (request.getCount() != null) product.setCount(request.getCount());
+        if (request.getUnit() != null) product.setUnit(request.getUnit());
+        if (request.getType() != null) {
+            product.setType(Product.ProductType.valueOf(request.getType()));
+        }
+        if (request.getIsWhiteYarn() != null) product.setIsWhiteYarn(request.getIsWhiteYarn());
+        if (request.getDescription() != null) product.setDescription(request.getDescription());
         return productUpdateService.update(id, product);
     }
 
@@ -88,11 +118,28 @@ public class ProductAppService {
         return colorQueryService.findByProductId(productId);
     }
 
-    public Color createColor(Long productId, Color color) {
+    public Color createColor(Long productId, CreateColorRequest request) {
+        Color color = new Color();
+        color.setProductId(productId);
+        color.setCode(request.getCode());
+        color.setName(request.getName());
+        color.setColorValue(request.getColorValue());
+        color.setDescription(request.getDescription());
+        if (request.getStatus() != null) {
+            color.setStatus(Color.ColorStatus.valueOf(request.getStatus()));
+        }
         return colorCreateService.create(productId, color);
     }
 
-    public Color updateColor(Long id, Color color) {
+    public Color updateColor(Long id, UpdateColorRequest request) {
+        Color color = new Color();
+        if (request.getCode() != null) color.setCode(request.getCode());
+        if (request.getName() != null) color.setName(request.getName());
+        if (request.getColorValue() != null) color.setColorValue(request.getColorValue());
+        if (request.getDescription() != null) color.setDescription(request.getDescription());
+        if (request.getStatus() != null) {
+            color.setStatus(Color.ColorStatus.valueOf(request.getStatus()));
+        }
         return colorUpdateService.update(id, color);
     }
 
@@ -105,11 +152,30 @@ public class ProductAppService {
         return batchQueryService.findByColorId(colorId);
     }
 
-    public Batch createBatch(Long colorId, Batch batch) {
+    public Batch createBatch(Long colorId, CreateBatchRequest request) {
+        Batch batch = new Batch();
+        batch.setColorId(colorId);
+        batch.setCode(request.getCode());
+        batch.setProductionDate(request.getProductionDate());
+        batch.setSupplierId(request.getSupplierId());
+        batch.setSupplierName(request.getSupplierName());
+        batch.setPurchasePrice(request.getPurchasePrice());
+        batch.setInitialQuantity(request.getInitialQuantity());
+        batch.setStockLocation(request.getStockLocation());
+        batch.setRemark(request.getRemark());
         return batchCreateService.create(colorId, batch);
     }
 
-    public Batch updateBatch(Long id, Batch batch) {
+    public Batch updateBatch(Long id, UpdateBatchRequest request) {
+        Batch batch = new Batch();
+        if (request.getCode() != null) batch.setCode(request.getCode());
+        if (request.getProductionDate() != null) batch.setProductionDate(request.getProductionDate());
+        if (request.getSupplierId() != null) batch.setSupplierId(request.getSupplierId());
+        if (request.getSupplierName() != null) batch.setSupplierName(request.getSupplierName());
+        if (request.getPurchasePrice() != null) batch.setPurchasePrice(request.getPurchasePrice());
+        if (request.getInitialQuantity() != null) batch.setInitialQuantity(request.getInitialQuantity());
+        if (request.getStockLocation() != null) batch.setStockLocation(request.getStockLocation());
+        if (request.getRemark() != null) batch.setRemark(request.getRemark());
         return batchUpdateService.update(id, batch);
     }
 

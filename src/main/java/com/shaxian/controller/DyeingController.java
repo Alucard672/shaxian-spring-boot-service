@@ -31,9 +31,12 @@ public class DyeingController {
 
     @GetMapping
     public ResponseEntity<List<DyeingOrder>> getAllDyeingOrders(
-            @RequestParam(required = false) String status,
-            @RequestParam(required = false) String productId) {
-        List<DyeingOrder> orders = dyeingOrderRepository.findByFilters(status, productId != null ? Long.parseLong(productId) : null);
+            @RequestParam(required = false) Integer pageNo,
+            @RequestParam(required = false) Integer pageSize,
+            @RequestBody(required = false) com.shaxian.dto.dyeing.request.DyeingOrderQueryRequest request) {
+        String status = request != null ? request.getStatus() : null;
+        Long productId = request != null ? request.getProductId() : null;
+        List<DyeingOrder> orders = dyeingOrderRepository.findByFilters(status, productId);
         orders.forEach(order -> order.setItems(dyeingOrderItemRepository.findByOrderId(order.getId())));
         return ResponseEntity.ok(orders);
     }
@@ -49,44 +52,41 @@ public class DyeingController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createDyeingOrder(@RequestBody Map<String, Object> request) {
+    public ResponseEntity<?> createDyeingOrder(@RequestBody com.shaxian.dto.dyeing.request.CreateDyeingOrderRequest request) {
         try {
             DyeingOrder order = new DyeingOrder();
             order.setOrderNumber(OrderNumberGenerator.generateDyeingOrderNumber());
-            
-            if (request.containsKey("productId")) order.setProductId(parseLong(request.get("productId")));
-            if (request.containsKey("productName")) order.setProductName((String) request.get("productName"));
-            if (request.containsKey("greyBatchId")) order.setGreyBatchId(parseLong(request.get("greyBatchId")));
-            if (request.containsKey("greyBatchCode")) order.setGreyBatchCode((String) request.get("greyBatchCode"));
-            if (request.containsKey("factoryId")) order.setFactoryId(parseLong(request.get("factoryId")));
-            if (request.containsKey("factoryName")) order.setFactoryName((String) request.get("factoryName"));
-            if (request.containsKey("factoryPhone")) order.setFactoryPhone((String) request.get("factoryPhone"));
-            if (request.containsKey("shipmentDate")) order.setShipmentDate(LocalDate.parse((String) request.get("shipmentDate")));
-            if (request.containsKey("expectedCompletionDate")) order.setExpectedCompletionDate(LocalDate.parse((String) request.get("expectedCompletionDate")));
-            if (request.containsKey("processingPrice")) order.setProcessingPrice(new BigDecimal(request.get("processingPrice").toString()));
-            if (request.containsKey("remark")) order.setRemark((String) request.get("remark"));
-            if (request.containsKey("operator")) order.setOperator((String) request.get("operator"));
-            if (request.containsKey("status")) {
-                order.setStatus(DyeingOrder.OrderStatus.valueOf((String) request.get("status")));
+            order.setProductId(request.getProductId());
+            order.setProductName(request.getProductName());
+            order.setGreyBatchId(request.getGreyBatchId());
+            order.setGreyBatchCode(request.getGreyBatchCode());
+            order.setFactoryId(request.getFactoryId());
+            order.setFactoryName(request.getFactoryName());
+            order.setFactoryPhone(request.getFactoryPhone());
+            order.setShipmentDate(request.getShipmentDate());
+            order.setExpectedCompletionDate(request.getExpectedCompletionDate());
+            order.setProcessingPrice(request.getProcessingPrice());
+            order.setRemark(request.getRemark());
+            order.setOperator(request.getOperator());
+            if (request.getStatus() != null) {
+                order.setStatus(DyeingOrder.OrderStatus.valueOf(request.getStatus()));
             }
             
-            @SuppressWarnings("unchecked")
-            List<Map<String, Object>> itemsData = (List<Map<String, Object>>) request.get("items");
-            BigDecimal totalQuantity = itemsData.stream()
-                    .map(item -> new BigDecimal(item.get("quantity").toString()))
+            BigDecimal totalQuantity = request.getItems().stream()
+                    .map(item -> item.getQuantity())
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
             order.setTotalAmount(totalQuantity.multiply(order.getProcessingPrice()));
             
             DyeingOrder saved = dyeingOrderRepository.save(order);
             
-            List<DyeingOrderItem> items = itemsData.stream().map(itemData -> {
+            List<DyeingOrderItem> items = request.getItems().stream().map(itemRequest -> {
                 DyeingOrderItem item = new DyeingOrderItem();
                 item.setOrderId(saved.getId());
-                if (itemData.containsKey("targetColorId")) item.setTargetColorId(parseLong(itemData.get("targetColorId")));
-                if (itemData.containsKey("targetColorCode")) item.setTargetColorCode((String) itemData.get("targetColorCode"));
-                if (itemData.containsKey("targetColorName")) item.setTargetColorName((String) itemData.get("targetColorName"));
-                if (itemData.containsKey("targetColorValue")) item.setTargetColorValue((String) itemData.get("targetColorValue"));
-                if (itemData.containsKey("quantity")) item.setQuantity(new BigDecimal(itemData.get("quantity").toString()));
+                item.setTargetColorId(itemRequest.getTargetColorId());
+                item.setTargetColorCode(itemRequest.getTargetColorCode());
+                item.setTargetColorName(itemRequest.getTargetColorName());
+                item.setTargetColorValue(itemRequest.getTargetColorValue());
+                item.setQuantity(itemRequest.getQuantity());
                 return item;
             }).toList();
             
@@ -100,50 +100,52 @@ public class DyeingController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateDyeingOrder(@PathVariable Long id, @RequestBody Map<String, Object> request) {
+    public ResponseEntity<?> updateDyeingOrder(@PathVariable Long id, @RequestBody com.shaxian.dto.dyeing.request.UpdateDyeingOrderRequest request) {
         try {
             DyeingOrder order = dyeingOrderRepository.findById(id)
                     .orElseThrow(() -> new IllegalArgumentException("染色加工单不存在"));
             
-            if (request.containsKey("productId")) order.setProductId(parseLong(request.get("productId")));
-            if (request.containsKey("productName")) order.setProductName((String) request.get("productName"));
-            if (request.containsKey("greyBatchId")) order.setGreyBatchId(parseLong(request.get("greyBatchId")));
-            if (request.containsKey("greyBatchCode")) order.setGreyBatchCode((String) request.get("greyBatchCode"));
-            if (request.containsKey("factoryId")) order.setFactoryId(parseLong(request.get("factoryId")));
-            if (request.containsKey("factoryName")) order.setFactoryName((String) request.get("factoryName"));
-            if (request.containsKey("factoryPhone")) order.setFactoryPhone((String) request.get("factoryPhone"));
-            if (request.containsKey("shipmentDate")) order.setShipmentDate(LocalDate.parse((String) request.get("shipmentDate")));
-            if (request.containsKey("expectedCompletionDate")) order.setExpectedCompletionDate(LocalDate.parse((String) request.get("expectedCompletionDate")));
-            if (request.containsKey("actualCompletionDate")) order.setActualCompletionDate(LocalDate.parse((String) request.get("actualCompletionDate")));
-            if (request.containsKey("processingPrice")) order.setProcessingPrice(new BigDecimal(request.get("processingPrice").toString()));
-            if (request.containsKey("remark")) order.setRemark((String) request.get("remark"));
-            if (request.containsKey("status")) {
-                order.setStatus(DyeingOrder.OrderStatus.valueOf((String) request.get("status")));
+            if (request.getProductId() != null) order.setProductId(request.getProductId());
+            if (request.getProductName() != null) order.setProductName(request.getProductName());
+            if (request.getGreyBatchId() != null) order.setGreyBatchId(request.getGreyBatchId());
+            if (request.getGreyBatchCode() != null) order.setGreyBatchCode(request.getGreyBatchCode());
+            if (request.getFactoryId() != null) order.setFactoryId(request.getFactoryId());
+            if (request.getFactoryName() != null) order.setFactoryName(request.getFactoryName());
+            if (request.getFactoryPhone() != null) order.setFactoryPhone(request.getFactoryPhone());
+            if (request.getShipmentDate() != null) order.setShipmentDate(request.getShipmentDate());
+            if (request.getExpectedCompletionDate() != null) order.setExpectedCompletionDate(request.getExpectedCompletionDate());
+            if (request.getActualCompletionDate() != null) order.setActualCompletionDate(request.getActualCompletionDate());
+            if (request.getProcessingPrice() != null) order.setProcessingPrice(request.getProcessingPrice());
+            if (request.getRemark() != null) order.setRemark(request.getRemark());
+            if (request.getOperator() != null) order.setOperator(request.getOperator());
+            if (request.getStatus() != null) {
+                order.setStatus(DyeingOrder.OrderStatus.valueOf(request.getStatus()));
             }
             
-            @SuppressWarnings("unchecked")
-            List<Map<String, Object>> itemsData = (List<Map<String, Object>>) request.get("items");
-            BigDecimal totalQuantity = itemsData.stream()
-                    .map(item -> new BigDecimal(item.get("quantity").toString()))
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
-            order.setTotalAmount(totalQuantity.multiply(order.getProcessingPrice()));
+            if (request.getItems() != null && !request.getItems().isEmpty()) {
+                BigDecimal totalQuantity = request.getItems().stream()
+                        .map(item -> item.getQuantity())
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+                order.setTotalAmount(totalQuantity.multiply(order.getProcessingPrice()));
+                
+                dyeingOrderItemRepository.deleteByOrderId(id);
+                
+                List<DyeingOrderItem> items = request.getItems().stream().map(itemRequest -> {
+                    DyeingOrderItem item = new DyeingOrderItem();
+                    item.setOrderId(id);
+                    item.setTargetColorId(itemRequest.getTargetColorId());
+                    item.setTargetColorCode(itemRequest.getTargetColorCode());
+                    item.setTargetColorName(itemRequest.getTargetColorName());
+                    item.setTargetColorValue(itemRequest.getTargetColorValue());
+                    item.setQuantity(itemRequest.getQuantity());
+                    return item;
+                }).toList();
+                
+                dyeingOrderItemRepository.saveAll(items);
+                order.setItems(items);
+            }
             
-            dyeingOrderItemRepository.deleteByOrderId(id);
-            
-            List<DyeingOrderItem> items = itemsData.stream().map(itemData -> {
-                DyeingOrderItem item = new DyeingOrderItem();
-                item.setOrderId(id);
-                if (itemData.containsKey("targetColorId")) item.setTargetColorId(parseLong(itemData.get("targetColorId")));
-                if (itemData.containsKey("targetColorCode")) item.setTargetColorCode((String) itemData.get("targetColorCode"));
-                if (itemData.containsKey("targetColorName")) item.setTargetColorName((String) itemData.get("targetColorName"));
-                if (itemData.containsKey("targetColorValue")) item.setTargetColorValue((String) itemData.get("targetColorValue"));
-                if (itemData.containsKey("quantity")) item.setQuantity(new BigDecimal(itemData.get("quantity").toString()));
-                return item;
-            }).toList();
-            
-            dyeingOrderItemRepository.saveAll(items);
             DyeingOrder saved = dyeingOrderRepository.save(order);
-            saved.setItems(items);
             
             return ResponseEntity.ok(saved);
         } catch (Exception e) {
@@ -160,18 +162,5 @@ public class DyeingController {
         return ResponseEntity.noContent().build();
     }
 
-    private Long parseLong(Object value) {
-        if (value == null) return null;
-        if (value instanceof Long) return (Long) value;
-        if (value instanceof Integer) return ((Integer) value).longValue();
-        if (value instanceof String) {
-            try {
-                return Long.parseLong((String) value);
-            } catch (NumberFormatException e) {
-                return null;
-            }
-        }
-        return null;
-    }
 }
 

@@ -3,14 +3,12 @@ package com.shaxian.controller;
 import com.shaxian.api.ApiResponse;
 import com.shaxian.appservice.sales.SalesAppService;
 import com.shaxian.entity.SalesOrder;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/sales")
@@ -24,12 +22,14 @@ public class SalesController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<SalesOrder>>> getAllSales(
-            @RequestParam(required = false) String status,
-            @RequestParam(required = false) String customerId,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
-        Long cid = customerId != null ? Long.parseLong(customerId) : null;
-        List<SalesOrder> orders = salesAppService.listSales(status, cid, startDate, endDate);
+            @RequestParam(required = false) Integer pageNo,
+            @RequestParam(required = false) Integer pageSize,
+            @RequestBody(required = false) com.shaxian.dto.sales.request.SalesOrderQueryRequest request) {
+        String status = request != null ? request.getStatus() : null;
+        Long customerId = request != null ? request.getCustomerId() : null;
+        LocalDate startDate = request != null ? request.getStartDate() : null;
+        LocalDate endDate = request != null ? request.getEndDate() : null;
+        List<SalesOrder> orders = salesAppService.listSales(status, customerId, startDate, endDate);
         return ResponseEntity.ok(ApiResponse.ok(orders));
     }
 
@@ -42,13 +42,13 @@ public class SalesController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<SalesOrder>> createSales(@RequestBody Map<String, Object> request) {
+    public ResponseEntity<ApiResponse<SalesOrder>> createSales(@RequestBody com.shaxian.dto.sales.request.CreateSalesOrderRequest request) {
         SalesOrder created = salesAppService.createSales(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(created));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<SalesOrder>> updateSales(@PathVariable Long id, @RequestBody Map<String, Object> request) {
+    public ResponseEntity<ApiResponse<SalesOrder>> updateSales(@PathVariable Long id, @RequestBody com.shaxian.dto.sales.request.UpdateSalesOrderRequest request) {
         SalesOrder updated = salesAppService.updateSales(id, request);
         return ResponseEntity.ok(ApiResponse.ok(updated));
     }

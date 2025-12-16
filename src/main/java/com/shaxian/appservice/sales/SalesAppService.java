@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -31,13 +30,13 @@ public class SalesAppService {
         return salesService.getSalesById(id);
     }
 
-    public SalesOrder createSales(Map<String, Object> request) {
+    public SalesOrder createSales(com.shaxian.dto.sales.request.CreateSalesOrderRequest request) {
         SalesOrder order = buildOrderFromRequest(request);
         List<SalesOrderItem> items = buildItemsFromRequest(request);
         return salesService.createSales(order, items);
     }
 
-    public SalesOrder updateSales(Long id, Map<String, Object> request) {
+    public SalesOrder updateSales(Long id, com.shaxian.dto.sales.request.UpdateSalesOrderRequest request) {
         SalesOrder order = buildOrderFromRequest(request);
         List<SalesOrderItem> items = buildItemsFromRequest(request);
         return salesService.updateSales(id, order, items);
@@ -47,57 +46,58 @@ public class SalesAppService {
         salesService.deleteSales(id);
     }
 
-    private SalesOrder buildOrderFromRequest(Map<String, Object> request) {
+    private SalesOrder buildOrderFromRequest(Object requestObj) {
         SalesOrder order = new SalesOrder();
-        if (request.containsKey("customerId")) order.setCustomerId(parseLong(request.get("customerId")));
-        if (request.containsKey("customerName")) order.setCustomerName((String) request.get("customerName"));
-        if (request.containsKey("salesDate")) order.setSalesDate(LocalDate.parse((String) request.get("salesDate")));
-        if (request.containsKey("expectedDate")) order.setExpectedDate(LocalDate.parse((String) request.get("expectedDate")));
-        if (request.containsKey("receivedAmount")) order.setReceivedAmount(new BigDecimal(request.get("receivedAmount").toString()));
-        if (request.containsKey("remark")) order.setRemark((String) request.get("remark"));
-        if (request.containsKey("operator")) order.setOperator((String) request.get("operator"));
-        if (request.containsKey("status")) {
-            String statusStr = (String) request.get("status");
-            order.setStatus(SalesOrder.OrderStatus.valueOf(statusStr));
+        if (requestObj instanceof com.shaxian.dto.sales.request.CreateSalesOrderRequest) {
+            com.shaxian.dto.sales.request.CreateSalesOrderRequest request = (com.shaxian.dto.sales.request.CreateSalesOrderRequest) requestObj;
+            order.setCustomerId(request.getCustomerId());
+            order.setCustomerName(request.getCustomerName());
+            order.setSalesDate(request.getSalesDate());
+            order.setExpectedDate(request.getExpectedDate());
+            order.setRemark(request.getRemark());
+            order.setOperator(request.getOperator());
+            if (request.getStatus() != null) {
+                order.setStatus(SalesOrder.OrderStatus.valueOf(request.getStatus()));
+            }
+        } else if (requestObj instanceof com.shaxian.dto.sales.request.UpdateSalesOrderRequest) {
+            com.shaxian.dto.sales.request.UpdateSalesOrderRequest request = (com.shaxian.dto.sales.request.UpdateSalesOrderRequest) requestObj;
+            if (request.getCustomerName() != null) order.setCustomerName(request.getCustomerName());
+            if (request.getSalesDate() != null) order.setSalesDate(request.getSalesDate());
+            if (request.getExpectedDate() != null) order.setExpectedDate(request.getExpectedDate());
+            if (request.getRemark() != null) order.setRemark(request.getRemark());
+            if (request.getOperator() != null) order.setOperator(request.getOperator());
+            if (request.getStatus() != null) {
+                order.setStatus(SalesOrder.OrderStatus.valueOf(request.getStatus()));
+            }
         }
         return order;
     }
 
-    @SuppressWarnings("unchecked")
-    private List<SalesOrderItem> buildItemsFromRequest(Map<String, Object> request) {
-        List<Map<String, Object>> itemsData = (List<Map<String, Object>>) request.get("items");
-        if (itemsData == null) {
+    private List<SalesOrderItem> buildItemsFromRequest(Object requestObj) {
+        java.util.List<com.shaxian.dto.sales.request.SalesOrderItemRequest> itemsData = null;
+        if (requestObj instanceof com.shaxian.dto.sales.request.CreateSalesOrderRequest) {
+            itemsData = ((com.shaxian.dto.sales.request.CreateSalesOrderRequest) requestObj).getItems();
+        } else if (requestObj instanceof com.shaxian.dto.sales.request.UpdateSalesOrderRequest) {
+            itemsData = ((com.shaxian.dto.sales.request.UpdateSalesOrderRequest) requestObj).getItems();
+        }
+        if (itemsData == null || itemsData.isEmpty()) {
             throw new IllegalArgumentException("items 不能为空");
         }
-        return itemsData.stream().map(itemData -> {
+        return itemsData.stream().map(itemRequest -> {
             SalesOrderItem item = new SalesOrderItem();
-            if (itemData.containsKey("productId")) item.setProductId(parseLong(itemData.get("productId")));
-            if (itemData.containsKey("productName")) item.setProductName((String) itemData.get("productName"));
-            if (itemData.containsKey("productCode")) item.setProductCode((String) itemData.get("productCode"));
-            if (itemData.containsKey("colorId")) item.setColorId(parseLong(itemData.get("colorId")));
-            if (itemData.containsKey("colorName")) item.setColorName((String) itemData.get("colorName"));
-            if (itemData.containsKey("colorCode")) item.setColorCode((String) itemData.get("colorCode"));
-            if (itemData.containsKey("batchId")) item.setBatchId(parseLong(itemData.get("batchId")));
-            if (itemData.containsKey("batchCode")) item.setBatchCode((String) itemData.get("batchCode"));
-            if (itemData.containsKey("quantity")) item.setQuantity(new BigDecimal(itemData.get("quantity").toString()));
-            if (itemData.containsKey("unit")) item.setUnit((String) itemData.get("unit"));
-            if (itemData.containsKey("price")) item.setPrice(new BigDecimal(itemData.get("price").toString()));
-            if (itemData.containsKey("remark")) item.setRemark((String) itemData.get("remark"));
+            item.setProductId(itemRequest.getProductId());
+            item.setProductName(itemRequest.getProductName());
+            item.setProductCode(itemRequest.getProductCode());
+            item.setColorId(itemRequest.getColorId());
+            item.setColorName(itemRequest.getColorName());
+            item.setColorCode(itemRequest.getColorCode());
+            item.setBatchId(itemRequest.getBatchId());
+            item.setBatchCode(itemRequest.getBatchCode());
+            item.setQuantity(itemRequest.getQuantity());
+            item.setUnit(itemRequest.getUnit());
+            item.setPrice(itemRequest.getPrice());
+            item.setRemark(itemRequest.getRemark());
             return item;
         }).toList();
-    }
-
-    private Long parseLong(Object value) {
-        if (value == null) return null;
-        if (value instanceof Long) return (Long) value;
-        if (value instanceof Integer) return ((Integer) value).longValue();
-        if (value instanceof String) {
-            try {
-                return Long.parseLong((String) value);
-            } catch (NumberFormatException e) {
-                throw new IllegalArgumentException("ID 参数格式错误", e);
-            }
-        }
-        throw new IllegalArgumentException("不支持的 ID 类型: " + value.getClass());
     }
 }
