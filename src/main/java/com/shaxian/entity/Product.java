@@ -32,7 +32,7 @@ public class Product {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private ProductType type = ProductType.原料;
+    private ProductType type = ProductType.RAW_MATERIAL;
 
     @Column(name = "is_white_yarn")
     private Boolean isWhiteYarn = false;
@@ -58,7 +58,7 @@ public class Product {
     }
 
     public enum ProductType {
-        原料, 半成品, 成品
+        RAW_MATERIAL, SEMI_FINISHED, FINISHED
     }
 }
 
