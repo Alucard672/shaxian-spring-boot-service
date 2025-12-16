@@ -1,141 +1,106 @@
 package com.shaxian.controller;
 
+import com.shaxian.api.ApiResponse;
+import com.shaxian.appservice.product.ProductAppService;
 import com.shaxian.entity.Batch;
 import com.shaxian.entity.Color;
 import com.shaxian.entity.Product;
-import com.shaxian.repository.BatchRepository;
-import com.shaxian.repository.ColorRepository;
-import com.shaxian.service.ProductService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/products")
 public class ProductController {
-    private final ProductService productService;
-    private final ColorRepository colorRepository;
-    private final BatchRepository batchRepository;
 
-    public ProductController(ProductService productService, ColorRepository colorRepository, BatchRepository batchRepository) {
-        this.productService = productService;
-        this.colorRepository = colorRepository;
-        this.batchRepository = batchRepository;
+    private final ProductAppService productAppService;
+
+    public ProductController(ProductAppService productAppService) {
+        this.productAppService = productAppService;
     }
 
     @GetMapping
-    public ResponseEntity<List<Product>> getAllProducts() {
-        return ResponseEntity.ok(productService.getAllProducts());
+    public ResponseEntity<ApiResponse<List<Product>>> getAllProducts() {
+        List<Product> products = productAppService.listProducts();
+        return ResponseEntity.ok(ApiResponse.ok(products));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Product> getProduct(@PathVariable Long id) {
-        return productService.getProductById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<ApiResponse<Product>> getProduct(@PathVariable Long id) {
+        return productAppService.findProduct(id)
+                .map(product -> ResponseEntity.ok(ApiResponse.ok(product)))
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(ApiResponse.fail("商品不存在")));
     }
 
     @PostMapping
-    public ResponseEntity<Product> createProduct(@RequestBody Product product) {
-        try {
-            Product created = productService.createProduct(product);
-            return ResponseEntity.status(HttpStatus.CREATED).body(created);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
-        }
+    public ResponseEntity<ApiResponse<Product>> createProduct(@RequestBody Product product) {
+        Product created = productAppService.createProduct(product);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(created));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Product> updateProduct(@PathVariable Long id, @RequestBody Product product) {
-        try {
-            Product updated = productService.updateProduct(id, product);
-            return ResponseEntity.ok(updated);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.notFound().build();
-        }
+    public ResponseEntity<ApiResponse<Product>> updateProduct(@PathVariable Long id, @RequestBody Product product) {
+        Product updated = productAppService.updateProduct(id, product);
+        return ResponseEntity.ok(ApiResponse.ok(updated));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
-        try {
-            productService.deleteProduct(id);
-            return ResponseEntity.noContent().build();
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.notFound().build();
-        }
+    public ResponseEntity<ApiResponse<Void>> deleteProduct(@PathVariable Long id) {
+        productAppService.deleteProduct(id);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(ApiResponse.ok(null));
     }
 
     // ========== 色号管理 ==========
     @GetMapping("/{id}/colors")
-    public ResponseEntity<List<Color>> getColors(@PathVariable Long id) {
-        return ResponseEntity.ok(colorRepository.findByProductIdOrderByCode(id));
+    public ResponseEntity<ApiResponse<List<Color>>> getColors(@PathVariable Long id) {
+        List<Color> colors = productAppService.listColors(id);
+        return ResponseEntity.ok(ApiResponse.ok(colors));
     }
 
     @PostMapping("/{id}/colors")
-    public ResponseEntity<Color> createColor(@PathVariable Long id, @RequestBody Color color) {
-        color.setProductId(id);
-        return ResponseEntity.status(HttpStatus.CREATED).body(colorRepository.save(color));
+    public ResponseEntity<ApiResponse<Color>> createColor(@PathVariable Long id, @RequestBody Color color) {
+        Color created = productAppService.createColor(id, color);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(created));
     }
 
     @PutMapping("/colors/{id}")
-    public ResponseEntity<Color> updateColor(@PathVariable Long id, @RequestBody Color color) {
-        if (!colorRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-        Color existing = colorRepository.findById(id).orElseThrow();
-        color.setId(id);
-        color.setProductId(existing.getProductId());
-        color.setCreatedAt(existing.getCreatedAt());
-        return ResponseEntity.ok(colorRepository.save(color));
+    public ResponseEntity<ApiResponse<Color>> updateColor(@PathVariable Long id, @RequestBody Color color) {
+        Color updated = productAppService.updateColor(id, color);
+        return ResponseEntity.ok(ApiResponse.ok(updated));
     }
 
     @DeleteMapping("/colors/{id}")
-    public ResponseEntity<Void> deleteColor(@PathVariable Long id) {
-        if (!colorRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-        colorRepository.deleteById(id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<ApiResponse<Void>> deleteColor(@PathVariable Long id) {
+        productAppService.deleteColor(id);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(ApiResponse.ok(null));
     }
 
     // ========== 缸号管理 ==========
     @GetMapping("/colors/{colorId}/batches")
-    public ResponseEntity<List<Batch>> getBatches(@PathVariable Long colorId) {
-        return ResponseEntity.ok(batchRepository.findByColorIdOrderByCode(colorId));
+    public ResponseEntity<ApiResponse<List<Batch>>> getBatches(@PathVariable Long colorId) {
+        List<Batch> batches = productAppService.listBatches(colorId);
+        return ResponseEntity.ok(ApiResponse.ok(batches));
     }
 
     @PostMapping("/colors/{colorId}/batches")
-    public ResponseEntity<Batch> createBatch(@PathVariable Long colorId, @RequestBody Batch batch) {
-        batch.setColorId(colorId);
-        if (batch.getStockQuantity() == null) {
-            batch.setStockQuantity(batch.getInitialQuantity() != null ? batch.getInitialQuantity() : java.math.BigDecimal.ZERO);
-        }
-        return ResponseEntity.status(HttpStatus.CREATED).body(batchRepository.save(batch));
+    public ResponseEntity<ApiResponse<Batch>> createBatch(@PathVariable Long colorId, @RequestBody Batch batch) {
+        Batch created = productAppService.createBatch(colorId, batch);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(created));
     }
 
     @PutMapping("/batches/{id}")
-    public ResponseEntity<Batch> updateBatch(@PathVariable Long id, @RequestBody Batch batch) {
-        if (!batchRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-        Batch existing = batchRepository.findById(id).orElseThrow();
-        batch.setId(id);
-        batch.setColorId(existing.getColorId());
-        batch.setCreatedAt(existing.getCreatedAt());
-        return ResponseEntity.ok(batchRepository.save(batch));
+    public ResponseEntity<ApiResponse<Batch>> updateBatch(@PathVariable Long id, @RequestBody Batch batch) {
+        Batch updated = productAppService.updateBatch(id, batch);
+        return ResponseEntity.ok(ApiResponse.ok(updated));
     }
 
     @DeleteMapping("/batches/{id}")
-    public ResponseEntity<Void> deleteBatch(@PathVariable Long id) {
-        if (!batchRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-        batchRepository.deleteById(id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<ApiResponse<Void>> deleteBatch(@PathVariable Long id) {
+        productAppService.deleteBatch(id);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(ApiResponse.ok(null));
     }
 }
 

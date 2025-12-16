@@ -1,0 +1,32 @@
+package com.shaxian.service.product;
+
+import com.shaxian.entity.Product;
+import com.shaxian.repository.ProductRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+public class ProductUpdateService {
+
+    private final ProductRepository productRepository;
+
+    public ProductUpdateService(ProductRepository productRepository) {
+        this.productRepository = productRepository;
+    }
+
+    @Transactional
+    public Product update(Long id, Product product) {
+        Product existing = productRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("商品不存在"));
+
+        if (!existing.getCode().equals(product.getCode())
+                && productRepository.existsByCode(product.getCode())) {
+            throw new IllegalArgumentException("商品编码已存在");
+        }
+
+        product.setId(id);
+        product.setCreatedAt(existing.getCreatedAt());
+        return productRepository.save(product);
+    }
+}
+
