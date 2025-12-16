@@ -41,7 +41,7 @@ public class InventoryCheckOrder {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private OrderStatus status = OrderStatus.计划中;
+    private OrderStatus status = OrderStatus.PLANNED;
 
     @Column(nullable = false, length = 100)
     private String operator;
@@ -70,6 +70,6 @@ public class InventoryCheckOrder {
     }
 
     public enum OrderStatus {
-        计划中, 盘点中, 已完成, 已取消
+        PLANNED, CHECKING, COMPLETED, CANCELLED
     }
 }

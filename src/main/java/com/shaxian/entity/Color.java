@@ -29,7 +29,7 @@ public class Color {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private ColorStatus status = ColorStatus.在售;
+    private ColorStatus status = ColorStatus.ON_SALE;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -53,7 +53,7 @@ public class Color {
     }
 
     public enum ColorStatus {
-        在售, 停售
+        ON_SALE, DISCONTINUED
     }
 
     // 手动添加getter/setter方法以确保编译通过

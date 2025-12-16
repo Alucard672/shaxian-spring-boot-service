@@ -40,7 +40,7 @@ public class AccountReceivable {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private AccountStatus status = AccountStatus.未结清;
+    private AccountStatus status = AccountStatus.UNPAID;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -60,7 +60,7 @@ public class AccountReceivable {
     }
 
     public enum AccountStatus {
-        未结清, 已结清
+        UNPAID, PAID
     }
 }
 

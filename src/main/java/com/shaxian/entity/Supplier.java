@@ -29,15 +29,15 @@ public class Supplier {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private SupplierType type = SupplierType.厂家;
+    private SupplierType type = SupplierType.MANUFACTURER;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "settlement_cycle", nullable = false)
-    private SettlementCycle settlementCycle = SettlementCycle.现结;
+    private SettlementCycle settlementCycle = SettlementCycle.CASH;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private SupplierStatus status = SupplierStatus.合作中;
+    private SupplierStatus status = SupplierStatus.ACTIVE;
 
     @Column(columnDefinition = "TEXT")
     private String remark;
@@ -60,15 +60,15 @@ public class Supplier {
     }
 
     public enum SupplierType {
-        厂家, 贸易商
+        MANUFACTURER, TRADER
     }
 
     public enum SettlementCycle {
-        现结, 月结, 季结
+        CASH, MONTHLY, QUARTERLY
     }
 
     public enum SupplierStatus {
-        合作中, 已停用
+        ACTIVE, INACTIVE
     }
 }
 

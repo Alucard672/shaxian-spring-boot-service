@@ -41,7 +41,7 @@ public class SalesOrder {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private OrderStatus status = OrderStatus.草稿;
+    private OrderStatus status = OrderStatus.DRAFT;
 
     @Column(length = 100)
     private String operator;
@@ -70,7 +70,7 @@ public class SalesOrder {
     }
 
     public enum OrderStatus {
-        草稿, 待审核, 已审核, 已出库, 已作废
+        DRAFT, PENDING, APPROVED, SHIPPED, CANCELLED
     }
 }
 

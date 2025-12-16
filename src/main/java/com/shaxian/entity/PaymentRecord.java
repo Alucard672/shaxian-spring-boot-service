@@ -22,7 +22,7 @@ public class PaymentRecord {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "payment_method", nullable = false)
-    private PaymentMethod paymentMethod = PaymentMethod.转账;
+    private PaymentMethod paymentMethod = PaymentMethod.TRANSFER;
 
     @Column(name = "payment_date", nullable = false)
     private LocalDate paymentDate;
@@ -42,7 +42,7 @@ public class PaymentRecord {
     }
 
     public enum PaymentMethod {
-        现金, 转账, 支票, 其他
+        CASH, TRANSFER, CHECK, OTHER
     }
 }
 

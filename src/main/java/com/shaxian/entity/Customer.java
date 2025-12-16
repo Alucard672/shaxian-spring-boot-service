@@ -30,14 +30,14 @@ public class Customer {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private CustomerType type = CustomerType.直客;
+    private CustomerType type = CustomerType.DIRECT;
 
     @Column(name = "credit_limit", precision = 12, scale = 2)
     private BigDecimal creditLimit;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private CustomerStatus status = CustomerStatus.正常;
+    private CustomerStatus status = CustomerStatus.NORMAL;
 
     @Column(columnDefinition = "TEXT")
     private String remark;
@@ -60,11 +60,11 @@ public class Customer {
     }
 
     public enum CustomerType {
-        直客, 经销商
+        DIRECT, DEALER
     }
 
     public enum CustomerStatus {
-        正常, 冻结
+        NORMAL, FROZEN
     }
 }
 

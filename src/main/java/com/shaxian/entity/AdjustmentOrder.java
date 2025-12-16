@@ -30,7 +30,7 @@ public class AdjustmentOrder {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private OrderStatus status = OrderStatus.草稿;
+    private OrderStatus status = OrderStatus.DRAFT;
 
     @Column(nullable = false, length = 100)
     private String operator;
@@ -59,10 +59,10 @@ public class AdjustmentOrder {
     }
 
     public enum AdjustmentType {
-        调增, 调减, 盘盈, 盘亏, 报损, 其他
+        INCREASE, DECREASE, SURPLUS, DEFICIT, LOSS, OTHER
     }
 
     public enum OrderStatus {
-        草稿, 已完成
+        DRAFT, COMPLETED
     }
 }

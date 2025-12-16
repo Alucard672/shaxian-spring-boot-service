@@ -63,7 +63,7 @@ public class SalesService {
         salesOrderItemRepository.saveAll(items);
         
         // 如果状态是已出库，减少库存
-        if (order.getStatus() == SalesOrder.OrderStatus.已出库) {
+        if (order.getStatus() == SalesOrder.OrderStatus.SHIPPED) {
             for (SalesOrderItem item : items) {
                 batchRepository.decreaseStock(item.getBatchId(), item.getQuantity());
             }
@@ -78,7 +78,7 @@ public class SalesService {
         SalesOrder existing = salesOrderRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("销售单不存在"));
         
-        if (existing.getStatus() != SalesOrder.OrderStatus.草稿) {
+        if (existing.getStatus() != SalesOrder.OrderStatus.DRAFT) {
             throw new IllegalArgumentException("只能修改草稿状态的订单");
         }
         
@@ -112,7 +112,7 @@ public class SalesService {
         SalesOrder order = salesOrderRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("销售单不存在"));
         
-        if (order.getStatus() != SalesOrder.OrderStatus.草稿) {
+        if (order.getStatus() != SalesOrder.OrderStatus.DRAFT) {
             throw new IllegalArgumentException("只能删除草稿状态的订单");
         }
         

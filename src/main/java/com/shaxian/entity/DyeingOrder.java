@@ -56,7 +56,7 @@ public class DyeingOrder {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private OrderStatus status = OrderStatus.待发货;
+    private OrderStatus status = OrderStatus.PENDING_SHIPMENT;
 
     @Column(length = 100)
     private String operator;
@@ -85,7 +85,7 @@ public class DyeingOrder {
     }
 
     public enum OrderStatus {
-        待发货, 加工中, 已完成, 已入库, 已取消
+        PENDING_SHIPMENT, PROCESSING, COMPLETED, RECEIVED, CANCELLED
     }
 }
 

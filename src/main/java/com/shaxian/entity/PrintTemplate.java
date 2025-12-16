@@ -68,11 +68,11 @@ public class PrintTemplate {
     }
 
     public enum TemplateType {
-        A4模板, 三联单
+        A4_TEMPLATE, TRIPLE_FORM
     }
 
     public enum DocumentType {
-        销售单, 进货单
+        SALES_ORDER, PURCHASE_ORDER
     }
 }
 

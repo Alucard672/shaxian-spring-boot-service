@@ -110,7 +110,7 @@ public class InventoryController {
 
             adjustmentOrderItemRepository.saveAll(items);
 
-            if (order.getStatus() == AdjustmentOrder.OrderStatus.已完成) {
+            if (order.getStatus() == AdjustmentOrder.OrderStatus.COMPLETED) {
                 for (AdjustmentOrderItem item : items) {
                     batchRepository.increaseStock(item.getBatchId(), item.getQuantity());
                 }
@@ -151,7 +151,7 @@ public class InventoryController {
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
             order.setTotalQuantity(totalQuantity);
 
-            if (oldStatus == AdjustmentOrder.OrderStatus.已完成 && order.getStatus() == AdjustmentOrder.OrderStatus.草稿) {
+            if (oldStatus == AdjustmentOrder.OrderStatus.COMPLETED && order.getStatus() == AdjustmentOrder.OrderStatus.DRAFT) {
                 List<AdjustmentOrderItem> oldItems = adjustmentOrderItemRepository.findByOrderId(id);
                 for (AdjustmentOrderItem item : oldItems) {
                     batchRepository.decreaseStock(item.getBatchId(), item.getQuantity());
@@ -188,7 +188,7 @@ public class InventoryController {
 
             adjustmentOrderItemRepository.saveAll(items);
 
-            if (order.getStatus() == AdjustmentOrder.OrderStatus.已完成) {
+            if (order.getStatus() == AdjustmentOrder.OrderStatus.COMPLETED) {
                 for (AdjustmentOrderItem item : items) {
                     batchRepository.increaseStock(item.getBatchId(), item.getQuantity());
                 }

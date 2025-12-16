@@ -22,7 +22,7 @@ public class ReceiptRecord {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "payment_method", nullable = false)
-    private PaymentMethod paymentMethod = PaymentMethod.转账;
+    private PaymentMethod paymentMethod = PaymentMethod.TRANSFER;
 
     @Column(name = "receipt_date", nullable = false)
     private LocalDate receiptDate;
@@ -42,7 +42,7 @@ public class ReceiptRecord {
     }
 
     public enum PaymentMethod {
-        现金, 转账, 支票, 其他
+        CASH, TRANSFER, CHECK, OTHER
     }
 }
 

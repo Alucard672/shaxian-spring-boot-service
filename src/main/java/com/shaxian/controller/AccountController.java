@@ -56,7 +56,7 @@ public class AccountController {
         BigDecimal unpaidAmount = receivable.getReceivableAmount().subtract(receivedAmount);
         receivable.setUnpaidAmount(unpaidAmount);
         receivable.setStatus(unpaidAmount.compareTo(BigDecimal.ZERO) > 0 ? 
-                AccountReceivable.AccountStatus.未结清 : AccountReceivable.AccountStatus.已结清);
+                AccountReceivable.AccountStatus.UNPAID : AccountReceivable.AccountStatus.PAID);
         
         return ResponseEntity.status(HttpStatus.CREATED).body(accountReceivableRepository.save(receivable));
     }
@@ -87,7 +87,7 @@ public class AccountController {
         BigDecimal newUnpaidAmount = receivable.getReceivableAmount().subtract(newReceivedAmount);
         receivable.setUnpaidAmount(newUnpaidAmount);
         receivable.setStatus(newUnpaidAmount.compareTo(BigDecimal.ZERO) > 0 ? 
-                AccountReceivable.AccountStatus.未结清 : AccountReceivable.AccountStatus.已结清);
+                AccountReceivable.AccountStatus.UNPAID : AccountReceivable.AccountStatus.PAID);
         accountReceivableRepository.save(receivable);
         
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
@@ -117,7 +117,7 @@ public class AccountController {
         BigDecimal unpaidAmount = payable.getPayableAmount().subtract(paidAmount);
         payable.setUnpaidAmount(unpaidAmount);
         payable.setStatus(unpaidAmount.compareTo(BigDecimal.ZERO) > 0 ? 
-                AccountPayable.AccountStatus.未结清 : AccountPayable.AccountStatus.已结清);
+                AccountPayable.AccountStatus.UNPAID : AccountPayable.AccountStatus.PAID);
         
         return ResponseEntity.status(HttpStatus.CREATED).body(accountPayableRepository.save(payable));
     }
@@ -148,7 +148,7 @@ public class AccountController {
         BigDecimal newUnpaidAmount = payable.getPayableAmount().subtract(newPaidAmount);
         payable.setUnpaidAmount(newUnpaidAmount);
         payable.setStatus(newUnpaidAmount.compareTo(BigDecimal.ZERO) > 0 ? 
-                AccountPayable.AccountStatus.未结清 : AccountPayable.AccountStatus.已结清);
+                AccountPayable.AccountStatus.UNPAID : AccountPayable.AccountStatus.PAID);
         accountPayableRepository.save(payable);
         
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
