@@ -7,7 +7,6 @@ git pull
 # 设置 Java 17 环境
 echo "正在设置 Java 17 环境..."
 export JAVA_HOME=$(/usr/libexec/java_home -v 17)
-export PATH=$JAVA_HOME/bin:$PATH
 
 # 编译打包
 echo "正在编译打包..."
