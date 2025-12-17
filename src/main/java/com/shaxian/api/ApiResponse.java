@@ -1,9 +1,17 @@
 package com.shaxian.api;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(description = "统一API响应结构")
 public class ApiResponse<T> {
 
+    @Schema(description = "是否成功", example = "true")
     private boolean success;
+
+    @Schema(description = "响应消息", example = "操作成功")
     private String message;
+
+    @Schema(description = "响应数据")
     private T data;
 
     public ApiResponse() {

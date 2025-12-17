@@ -1,5 +1,7 @@
 package com.shaxian.dto.alert.request;
 
+import java.math.BigDecimal;
+
 import lombok.Data;
 
 @Data

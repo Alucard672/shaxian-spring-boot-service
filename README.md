@@ -1,6 +1,6 @@
-# 沙县ERP系统 - Spring Boot 后端
+# 纱线ERP系统 - Spring Boot 后端
 
-这是沙县ERP系统的 Spring Boot 版本后端服务。
+这是纱线ERP系统的 Spring Boot 版本后端服务。
 
 ## 技术栈
 

@@ -1,4 +1,4 @@
--- 沙县ERP系统数据库 Schema
+-- 纱线ERP系统数据库 Schema
 -- 支持 MySQL 5.7+ / PostgreSQL 10+ / SQLite 3
 
 -- ========== 商品相关表 ==========

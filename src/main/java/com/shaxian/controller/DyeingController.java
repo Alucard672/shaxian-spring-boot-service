@@ -5,6 +5,11 @@ import com.shaxian.entity.DyeingOrderItem;
 import com.shaxian.repository.DyeingOrderItemRepository;
 import com.shaxian.repository.DyeingOrderRepository;
 import com.shaxian.util.OrderNumberGenerator;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +22,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/dyeing")
+@Tag(name = "染色管理", description = "染色加工单管理接口")
 public class DyeingController {
     private final DyeingOrderRepository dyeingOrderRepository;
     private final DyeingOrderItemRepository dyeingOrderItemRepository;
@@ -30,6 +36,10 @@ public class DyeingController {
 
 
     @GetMapping
+    @Operation(summary = "获取染色加工单列表", description = "查询染色加工单，支持按状态和商品ID筛选")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "成功获取染色加工单列表")
+    })
     public ResponseEntity<List<DyeingOrder>> getAllDyeingOrders(
             @RequestParam(required = false) Integer pageNo,
             @RequestParam(required = false) Integer pageSize,
@@ -42,7 +52,13 @@ public class DyeingController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<DyeingOrder> getDyeingOrder(@PathVariable Long id) {
+    @Operation(summary = "获取染色加工单详情", description = "根据ID获取染色加工单信息")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "成功获取染色加工单信息"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "染色加工单不存在")
+    })
+    public ResponseEntity<DyeingOrder> getDyeingOrder(
+            @Parameter(description = "染色加工单ID", required = true) @PathVariable Long id) {
         Optional<DyeingOrder> order = dyeingOrderRepository.findById(id);
         if (order.isPresent()) {
             order.get().setItems(dyeingOrderItemRepository.findByOrderId(id));
@@ -52,6 +68,11 @@ public class DyeingController {
     }
 
     @PostMapping
+    @Operation(summary = "创建染色加工单", description = "创建新的染色加工单")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "成功创建染色加工单"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "请求参数错误")
+    })
     public ResponseEntity<?> createDyeingOrder(@RequestBody com.shaxian.dto.dyeing.request.CreateDyeingOrderRequest request) {
         try {
             DyeingOrder order = new DyeingOrder();
@@ -100,7 +121,14 @@ public class DyeingController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateDyeingOrder(@PathVariable Long id, @RequestBody com.shaxian.dto.dyeing.request.UpdateDyeingOrderRequest request) {
+    @Operation(summary = "更新染色加工单", description = "更新染色加工单信息")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "成功更新染色加工单"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "请求参数错误")
+    })
+    public ResponseEntity<?> updateDyeingOrder(
+            @Parameter(description = "染色加工单ID", required = true) @PathVariable Long id,
+            @RequestBody com.shaxian.dto.dyeing.request.UpdateDyeingOrderRequest request) {
         try {
             DyeingOrder order = dyeingOrderRepository.findById(id)
                     .orElseThrow(() -> new IllegalArgumentException("染色加工单不存在"));
@@ -154,7 +182,13 @@ public class DyeingController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteDyeingOrder(@PathVariable Long id) {
+    @Operation(summary = "删除染色加工单", description = "删除指定染色加工单")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "204", description = "成功删除染色加工单"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "染色加工单不存在")
+    })
+    public ResponseEntity<Void> deleteDyeingOrder(
+            @Parameter(description = "染色加工单ID", required = true) @PathVariable Long id) {
         if (!dyeingOrderRepository.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
