@@ -36,11 +36,14 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    @Operation(summary = "用户登出", description = "退出登录")
+    @Operation(summary = "用户登出", description = "退出登录，需要传递 sessionId")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "登出成功")
     })
-    public ResponseEntity<ApiResponse<Void>> logout() {
+    public ResponseEntity<ApiResponse<Void>> logout(@RequestHeader(value = "X-Session-Id", required = false) String sessionIdHeader,
+                                                     @RequestParam(value = "sessionId", required = false) String sessionIdParam) {
+        String sessionId = sessionIdHeader != null ? sessionIdHeader : sessionIdParam;
+        authAppService.logout(sessionId);
         return ResponseEntity.ok(ApiResponse.ok("登出成功", null));
     }
 }
