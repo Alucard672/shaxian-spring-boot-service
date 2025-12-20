@@ -18,6 +18,12 @@ public class Tenant {
     @Column(nullable = false, unique = true, length = 50)
     private String code;
 
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String address;
+
+    @Column(name = "expires_at")
+    private LocalDateTime expiresAt;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private TenantStatus status = TenantStatus.ACTIVE;

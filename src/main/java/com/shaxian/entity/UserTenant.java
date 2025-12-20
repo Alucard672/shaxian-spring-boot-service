@@ -21,6 +21,10 @@ public class UserTenant {
     @Column(name = "is_default", nullable = false)
     private Boolean isDefault = false;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "relationship_type", nullable = false)
+    private RelationshipType relationshipType = RelationshipType.OWNER;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private User user;
@@ -44,5 +48,9 @@ public class UserTenant {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
+    }
+
+    public enum RelationshipType {
+        OWNER, MEMBER
     }
 }

@@ -43,3 +43,6 @@ logging:
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
 
+tenant:
+  default-expiry-days: 7
+

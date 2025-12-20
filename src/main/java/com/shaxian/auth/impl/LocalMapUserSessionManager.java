@@ -31,8 +31,8 @@ public class LocalMapUserSessionManager implements UserSessionManager {
                 user.getEmail(),
                 null, // role 从User中获取，暂时为null
                 null, // position 从User中获取，暂时为null
-                tenant.getId(),
-                tenant.getName()
+                tenant != null ? tenant.getId() : null,
+                tenant != null ? tenant.getName() : null
         );
         sessionMap.put(sessionId, userSession);
         return userSession;

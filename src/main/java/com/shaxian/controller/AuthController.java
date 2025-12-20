@@ -2,11 +2,12 @@ package com.shaxian.controller;
 
 import com.shaxian.api.ApiResponse;
 import com.shaxian.appservice.auth.AuthAppService;
-import com.shaxian.auth.UserSession;
+import com.shaxian.dto.auth.request.RegisterRequest;
 import com.shaxian.entity.UserTenant;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,6 +23,21 @@ public class AuthController {
 
     public AuthController(AuthAppService authAppService) {
         this.authAppService = authAppService;
+    }
+
+    @PostMapping("/register")
+    @Operation(summary = "用户注册", description = "通过手机号和密码注册，可选择传递租户代码自动关联租户")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "注册成功"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "手机号已存在或租户代码不存在")
+    })
+    public ResponseEntity<ApiResponse<Map<String, Object>>> register(@Valid @RequestBody RegisterRequest registerRequest) {
+        Map<String, Object> userInfo = authAppService.register(
+                registerRequest.getPhone(),
+                registerRequest.getPassword(),
+                registerRequest.getTenantCode()
+        );
+        return ResponseEntity.ok(ApiResponse.ok("注册成功", userInfo));
     }
 
     @PostMapping("/login")

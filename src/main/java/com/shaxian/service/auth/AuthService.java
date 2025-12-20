@@ -3,7 +3,6 @@ package com.shaxian.service.auth;
 import com.shaxian.entity.Tenant;
 import com.shaxian.entity.User;
 import com.shaxian.repository.UserRepository;
-import com.shaxian.repository.UserTenantRepository;
 import com.shaxian.service.user.UserService;
 import org.springframework.stereotype.Service;
 
@@ -19,7 +18,7 @@ public class AuthService {
     }
 
     /**
-     * 登录校验，返回通过校验的用户和默认租户信息，否则抛出业务异常
+     * 登录校验，返回通过校验的用户和默认租户信息（租户可能为null）
      */
     public LoginResult login(String phone, String password) {
         User user = userRepository.findByPhone(phone)
@@ -41,9 +40,8 @@ public class AuthService {
             throw new IllegalArgumentException("账户已被禁用");
         }
 
-        // 查找用户的默认租户
-        Tenant defaultTenant = userService.getDefaultTenant(user.getId())
-                .orElseThrow(() -> new IllegalArgumentException("用户未关联任何租户，无法登录"));
+        // 查找用户的默认租户（允许为null，用户可以在登录后创建企业）
+        Tenant defaultTenant = userService.getDefaultTenant(user.getId()).orElse(null);
 
         return new LoginResult(user, defaultTenant);
     }
