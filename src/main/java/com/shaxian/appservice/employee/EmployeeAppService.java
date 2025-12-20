@@ -3,7 +3,9 @@ package com.shaxian.appservice.employee;
 import com.shaxian.dto.employee.request.CreateEmployeeRequest;
 import com.shaxian.dto.employee.request.UpdateEmployeeRequest;
 import com.shaxian.entity.Employee;
+import com.shaxian.entity.User;
 import com.shaxian.service.settings.EmployeeService;
+import com.shaxian.service.user.UserService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,9 +15,11 @@ import java.util.Optional;
 public class EmployeeAppService {
 
     private final EmployeeService employeeService;
+    private final UserService userService;
 
-    public EmployeeAppService(EmployeeService employeeService) {
+    public EmployeeAppService(EmployeeService employeeService, UserService userService) {
         this.employeeService = employeeService;
+        this.userService = userService;
     }
 
     public List<Employee> listEmployees() {
@@ -56,5 +60,13 @@ public class EmployeeAppService {
 
     public void deleteEmployee(Long id) {
         employeeService.delete(id);
+    }
+
+    /**
+     * 授权员工登录
+     * 将员工数据同步到用户表，并建立租户关联
+     */
+    public User authorizeEmployeeLogin(Long employeeId, Long tenantId) {
+        return userService.authorizeEmployeeLogin(employeeId, tenantId);
     }
 }

@@ -2,12 +2,15 @@ package com.shaxian.controller;
 
 import com.shaxian.api.ApiResponse;
 import com.shaxian.appservice.auth.AuthAppService;
+import com.shaxian.auth.UserSession;
+import com.shaxian.entity.UserTenant;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -45,6 +48,35 @@ public class AuthController {
         String sessionId = sessionIdHeader != null ? sessionIdHeader : sessionIdParam;
         authAppService.logout(sessionId);
         return ResponseEntity.ok(ApiResponse.ok("登出成功", null));
+    }
+
+    @PostMapping("/switch-tenant")
+    @Operation(summary = "切换租户", description = "切换到用户关联的另一个租户")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "切换成功"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "用户未关联该租户")
+    })
+    public ResponseEntity<ApiResponse<Map<String, Object>>> switchTenant(
+            @RequestHeader(value = "X-Session-Id", required = false) String sessionIdHeader,
+            @RequestParam(value = "sessionId", required = false) String sessionIdParam,
+            @RequestBody Map<String, Long> request) {
+        String sessionId = sessionIdHeader != null ? sessionIdHeader : sessionIdParam;
+        Long tenantId = request.get("tenantId");
+        Map<String, Object> userInfo = authAppService.switchTenant(sessionId, tenantId);
+        return ResponseEntity.ok(ApiResponse.ok("切换租户成功", userInfo));
+    }
+
+    @GetMapping("/user-tenants")
+    @Operation(summary = "获取用户租户列表", description = "获取当前用户关联的所有租户")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "成功获取租户列表")
+    })
+    public ResponseEntity<ApiResponse<List<UserTenant>>> getUserTenants(
+            @RequestHeader(value = "X-Session-Id", required = false) String sessionIdHeader,
+            @RequestParam(value = "sessionId", required = false) String sessionIdParam) {
+        String sessionId = sessionIdHeader != null ? sessionIdHeader : sessionIdParam;
+        List<UserTenant> userTenants = authAppService.getUserTenants(sessionId);
+        return ResponseEntity.ok(ApiResponse.ok(userTenants));
     }
 }
 

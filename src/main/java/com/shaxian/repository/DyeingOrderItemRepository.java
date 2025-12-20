@@ -5,10 +5,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface DyeingOrderItemRepository extends JpaRepository<DyeingOrderItem, Long> {
     List<DyeingOrderItem> findByOrderId(Long orderId);
     void deleteByOrderId(Long orderId);
+    List<DyeingOrderItem> findAllByTenantId(Long tenantId);
+    Optional<DyeingOrderItem> findByIdAndTenantId(Long id, Long tenantId);
+    boolean existsByIdAndTenantId(Long id, Long tenantId);
 }
 

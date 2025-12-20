@@ -7,11 +7,14 @@ import java.time.LocalDateTime;
 
 @Data
 @Entity
-@Table(name = "inventory_check_items")
+@Table(name = "inventory_check_items", indexes = @Index(name = "idx_tenant_id", columnList = "tenant_id"))
 public class InventoryCheckItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "tenant_id", nullable = false)
+    private Long tenantId;
 
     @Column(name = "order_id", nullable = false)
     private Long orderId;

@@ -2,11 +2,17 @@ package com.shaxian.appservice.auth;
 
 import com.shaxian.auth.UserSession;
 import com.shaxian.auth.UserSessionManager;
-import com.shaxian.entity.Employee;
+import com.shaxian.entity.Tenant;
+import com.shaxian.entity.User;
+import com.shaxian.entity.UserTenant;
+import com.shaxian.repository.TenantRepository;
+import com.shaxian.repository.UserTenantRepository;
 import com.shaxian.service.auth.AuthService;
+import com.shaxian.service.user.UserService;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -14,24 +20,34 @@ public class AuthAppService {
 
     private final AuthService authService;
     private final UserSessionManager userSessionManager;
+    private final UserService userService;
+    private final UserTenantRepository userTenantRepository;
+    private final TenantRepository tenantRepository;
 
-    public AuthAppService(AuthService authService, UserSessionManager userSessionManager) {
+    public AuthAppService(AuthService authService, UserSessionManager userSessionManager,
+                          UserService userService, UserTenantRepository userTenantRepository,
+                          TenantRepository tenantRepository) {
         this.authService = authService;
         this.userSessionManager = userSessionManager;
+        this.userService = userService;
+        this.userTenantRepository = userTenantRepository;
+        this.tenantRepository = tenantRepository;
     }
 
     /**
-     * 处理登录流程，返回前端需要的用户信息结构（包含 sessionId）
+     * 处理登录流程，返回前端需要的用户信息结构（包含 sessionId 和租户信息）
      */
     public Map<String, Object> login(String phone, String password) {
         if (phone == null || password == null || phone.trim().isEmpty() || password.trim().isEmpty()) {
             throw new IllegalArgumentException("手机号和密码不能为空");
         }
 
-        Employee employee = authService.login(phone, password);
+        AuthService.LoginResult loginResult = authService.login(phone, password);
+        User user = loginResult.getUser();
+        Tenant tenant = loginResult.getTenant();
 
         // 创建用户会话
-        UserSession userSession = userSessionManager.createSession(employee);
+        UserSession userSession = userSessionManager.createSession(user, tenant);
 
         // 返回包含 sessionId 的用户信息
         Map<String, Object> userInfo = new HashMap<>();
@@ -42,8 +58,69 @@ public class AuthAppService {
         userInfo.put("email", userSession.getEmail());
         userInfo.put("role", userSession.getRole());
         userInfo.put("position", userSession.getPosition());
+        userInfo.put("tenantId", userSession.getTenantId());
+        userInfo.put("tenantName", userSession.getTenantName());
 
         return userInfo;
+    }
+
+    /**
+     * 切换租户
+     */
+    public Map<String, Object> switchTenant(String sessionId, Long tenantId) {
+        if (sessionId == null || sessionId.isEmpty()) {
+            throw new IllegalArgumentException("sessionId不能为空");
+        }
+        if (tenantId == null) {
+            throw new IllegalArgumentException("tenantId不能为空");
+        }
+
+        UserSession userSession = userSessionManager.getSession(sessionId);
+        if (userSession == null) {
+            throw new IllegalArgumentException("无效的sessionId");
+        }
+
+        // 验证用户是否关联该租户
+        userTenantRepository.findByUserIdAndTenantId(userSession.getUserId(), tenantId)
+                .orElseThrow(() -> new IllegalArgumentException("用户未关联该租户"));
+
+        // 获取租户信息
+        Tenant tenant = tenantRepository.findById(tenantId)
+                .orElseThrow(() -> new IllegalArgumentException("租户不存在"));
+
+        // 更新UserSession的租户信息
+        userSession.setTenantId(tenantId);
+        userSession.setTenantName(tenant.getName());
+
+        // 返回更新后的用户信息
+        Map<String, Object> userInfo = new HashMap<>();
+        userInfo.put("sessionId", userSession.getSessionId());
+        userInfo.put("id", userSession.getUserId());
+        userInfo.put("name", userSession.getUsername());
+        userInfo.put("phone", userSession.getPhone());
+        userInfo.put("email", userSession.getEmail());
+        userInfo.put("role", userSession.getRole());
+        userInfo.put("position", userSession.getPosition());
+        userInfo.put("tenantId", userSession.getTenantId());
+        userInfo.put("tenantName", userSession.getTenantName());
+
+        return userInfo;
+    }
+
+    /**
+     * 获取用户关联的所有租户
+     */
+    public List<UserTenant> getUserTenants(String sessionId) {
+        if (sessionId == null || sessionId.isEmpty()) {
+            throw new IllegalArgumentException("sessionId不能为空");
+        }
+
+        UserSession userSession = userSessionManager.getSession(sessionId);
+        if (userSession == null) {
+            throw new IllegalArgumentException("无效的sessionId");
+        }
+
+        return userService.getUserTenants(userSession.getUserId());
     }
 
     /**

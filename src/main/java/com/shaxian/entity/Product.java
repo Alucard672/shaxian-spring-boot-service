@@ -7,13 +7,17 @@ import java.time.LocalDateTime;
 
 @Data
 @Entity
-@Table(name = "products")
+@Table(name = "products", indexes = @Index(name = "idx_tenant_id", columnList = "tenant_id"))
 @Schema(description = "商品实体")
 public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Schema(description = "商品ID", example = "1")
     private Long id;
+
+    @Column(name = "tenant_id", nullable = false)
+    @Schema(description = "租户ID")
+    private Long tenantId;
 
     @Column(nullable = false, length = 200)
     @Schema(description = "商品名称", example = "纯棉纱线")

@@ -1,6 +1,7 @@
 package com.shaxian.auth;
 
-import com.shaxian.entity.Employee;
+import com.shaxian.entity.Tenant;
+import com.shaxian.entity.User;
 
 /**
  * 用户会话管理接口
@@ -11,10 +12,11 @@ public interface UserSessionManager {
     /**
      * 创建用户会话
      *
-     * @param employee 员工实体
+     * @param user 用户实体
+     * @param tenant 租户实体
      * @return 用户会话对象
      */
-    UserSession createSession(Employee employee);
+    UserSession createSession(User user, Tenant tenant);
 
     /**
      * 根据 sessionId 获取用户会话

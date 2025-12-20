@@ -2,7 +2,8 @@ package com.shaxian.auth.impl;
 
 import com.shaxian.auth.UserSession;
 import com.shaxian.auth.UserSessionManager;
-import com.shaxian.entity.Employee;
+import com.shaxian.entity.Tenant;
+import com.shaxian.entity.User;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -20,16 +21,18 @@ public class LocalMapUserSessionManager implements UserSessionManager {
     private final ConcurrentHashMap<String, UserSession> sessionMap = new ConcurrentHashMap<>();
 
     @Override
-    public UserSession createSession(Employee employee) {
+    public UserSession createSession(User user, Tenant tenant) {
         String sessionId = UUID.randomUUID().toString();
         UserSession userSession = new UserSession(
                 sessionId,
-                employee.getId(),
-                employee.getName(),
-                employee.getPhone(),
-                employee.getEmail(),
-                employee.getRole(),
-                employee.getPosition()
+                user.getId(),
+                user.getName(),
+                user.getPhone(),
+                user.getEmail(),
+                null, // role 从User中获取，暂时为null
+                null, // position 从User中获取，暂时为null
+                tenant.getId(),
+                tenant.getName()
         );
         sessionMap.put(sessionId, userSession);
         return userSession;

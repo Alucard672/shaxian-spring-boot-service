@@ -8,11 +8,14 @@ import java.time.LocalDateTime;
 
 @Data
 @Entity
-@Table(name = "adjustment_order_items")
+@Table(name = "adjustment_order_items", indexes = @Index(name = "idx_tenant_id", columnList = "tenant_id"))
 public class AdjustmentOrderItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "tenant_id", nullable = false)
+    private Long tenantId;
 
     @Column(name = "order_id", nullable = false)
     private Long orderId;

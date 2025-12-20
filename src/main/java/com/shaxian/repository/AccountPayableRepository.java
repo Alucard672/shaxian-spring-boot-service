@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface AccountPayableRepository extends JpaRepository<AccountPayable, Long> {
@@ -15,5 +16,9 @@ public interface AccountPayableRepository extends JpaRepository<AccountPayable, 
            "(:status IS NULL OR CAST(ap.status AS string) = :status) " +
            "ORDER BY ap.accountDate DESC")
     List<AccountPayable> findByFilters(@Param("supplierId") Long supplierId, @Param("status") String status);
+    
+    List<AccountPayable> findAllByTenantId(Long tenantId);
+    Optional<AccountPayable> findByIdAndTenantId(Long id, Long tenantId);
+    boolean existsByIdAndTenantId(Long id, Long tenantId);
 }
 

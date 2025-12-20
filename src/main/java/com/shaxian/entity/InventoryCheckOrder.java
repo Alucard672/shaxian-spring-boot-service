@@ -9,11 +9,14 @@ import java.util.List;
 
 @Data
 @Entity
-@Table(name = "inventory_check_orders")
+@Table(name = "inventory_check_orders", indexes = @Index(name = "idx_tenant_id", columnList = "tenant_id"))
 public class InventoryCheckOrder {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "tenant_id", nullable = false)
+    private Long tenantId;
 
     @Column(name = "order_number", nullable = false, unique = true, length = 50)
     private String orderNumber;

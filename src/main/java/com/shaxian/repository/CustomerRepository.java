@@ -4,11 +4,15 @@ import com.shaxian.entity.Customer;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface CustomerRepository extends JpaRepository<Customer, Long> {
     Optional<Customer> findByCode(String code);
     boolean existsByCode(String code);
+    List<Customer> findAllByTenantId(Long tenantId);
+    Optional<Customer> findByIdAndTenantId(Long id, Long tenantId);
+    boolean existsByIdAndTenantId(Long id, Long tenantId);
 }
 

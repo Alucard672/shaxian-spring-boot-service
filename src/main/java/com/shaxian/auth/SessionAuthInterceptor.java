@@ -48,6 +48,13 @@ public class SessionAuthInterceptor implements HandlerInterceptor {
             return false;
         }
 
+        // 验证租户ID不为null
+        if (userSession.getTenantId() == null) {
+            logger.warn("用户会话缺少租户信息: {}", sessionId);
+            writeErrorResponse(response, "用户会话缺少租户信息");
+            return false;
+        }
+
         // 将 UserSession 存入请求属性，供后续参数解析器和业务层使用
         request.setAttribute(CURRENT_USER_SESSION, userSession);
 

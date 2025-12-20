@@ -7,11 +7,14 @@ import java.time.LocalDateTime;
 
 @Data
 @Entity
-@Table(name = "customers")
+@Table(name = "customers", indexes = @Index(name = "idx_tenant_id", columnList = "tenant_id"))
 public class Customer {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "tenant_id", nullable = false)
+    private Long tenantId;
 
     @Column(nullable = false, length = 200)
     private String name;

@@ -42,6 +42,16 @@ public class UserSession {
      */
     private String position;
 
+    /**
+     * 租户ID
+     */
+    private Long tenantId;
+
+    /**
+     * 租户名称
+     */
+    private String tenantName;
+
     public UserSession() {
     }
 
@@ -53,5 +63,17 @@ public class UserSession {
         this.email = email;
         this.role = role;
         this.position = position;
+    }
+
+    public UserSession(String sessionId, Long userId, String username, String phone, String email, String role, String position, Long tenantId, String tenantName) {
+        this.sessionId = sessionId;
+        this.userId = userId;
+        this.username = username;
+        this.phone = phone;
+        this.email = email;
+        this.role = role;
+        this.position = position;
+        this.tenantId = tenantId;
+        this.tenantName = tenantName;
     }
 }

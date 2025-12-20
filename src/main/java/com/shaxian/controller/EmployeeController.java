@@ -5,6 +5,7 @@ import com.shaxian.appservice.employee.EmployeeAppService;
 import com.shaxian.dto.employee.request.CreateEmployeeRequest;
 import com.shaxian.dto.employee.request.UpdateEmployeeRequest;
 import com.shaxian.entity.Employee;
+import com.shaxian.entity.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 
@@ -15,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/employees")
@@ -92,6 +94,29 @@ public class EmployeeController {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).body(ApiResponse.ok(null));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.fail(e.getMessage()));
+        }
+    }
+
+    @PostMapping("/{employeeId}/authorize-login")
+    @Operation(summary = "授权员工登录", description = "将员工数据同步到用户表并建立租户关联")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "授权成功"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "授权失败")
+    })
+    public ResponseEntity<ApiResponse<User>> authorizeEmployeeLogin(
+            @Parameter(description = "员工ID", required = true) @PathVariable Long employeeId,
+            @RequestBody Map<String, Long> request) {
+        try {
+            Long tenantId = request.get("tenantId");
+            if (tenantId == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(ApiResponse.fail("tenantId不能为空"));
+            }
+            User user = employeeAppService.authorizeEmployeeLogin(employeeId, tenantId);
+            return ResponseEntity.ok(ApiResponse.ok("授权成功", user));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(ApiResponse.fail(e.getMessage()));
         }
     }

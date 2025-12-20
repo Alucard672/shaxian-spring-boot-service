@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface SalesOrderRepository extends JpaRepository<SalesOrder, Long> {
@@ -21,5 +22,9 @@ public interface SalesOrderRepository extends JpaRepository<SalesOrder, Long> {
                                    @Param("customerId") Long customerId,
                                    @Param("startDate") LocalDate startDate,
                                    @Param("endDate") LocalDate endDate);
+    
+    List<SalesOrder> findAllByTenantId(Long tenantId);
+    Optional<SalesOrder> findByIdAndTenantId(Long id, Long tenantId);
+    boolean existsByIdAndTenantId(Long id, Long tenantId);
 }
 

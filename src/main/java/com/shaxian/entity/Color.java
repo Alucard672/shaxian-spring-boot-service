@@ -5,12 +5,15 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "colors")
+@Table(name = "colors", indexes = @Index(name = "idx_tenant_id", columnList = "tenant_id"))
 @Data
 public class Color {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "tenant_id", nullable = false)
+    private Long tenantId;
 
     @Column(name = "product_id", nullable = false)
     private Long productId;

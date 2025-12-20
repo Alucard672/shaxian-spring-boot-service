@@ -8,11 +8,14 @@ import java.time.LocalDateTime;
 
 @Data
 @Entity
-@Table(name = "account_receivables")
+@Table(name = "account_receivables", indexes = @Index(name = "idx_tenant_id", columnList = "tenant_id"))
 public class AccountReceivable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "tenant_id", nullable = false)
+    private Long tenantId;
 
     @Column(name = "customer_id", nullable = false)
     private Long customerId;
