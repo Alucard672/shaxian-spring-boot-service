@@ -2,6 +2,7 @@ package com.shaxian.controller;
 
 import com.shaxian.api.ApiResponse;
 import com.shaxian.appservice.account.AccountAppService;
+import com.shaxian.auth.UserSession;
 import com.shaxian.entity.AccountPayable;
 import com.shaxian.entity.AccountReceivable;
 import com.shaxian.entity.PaymentRecord;
@@ -37,7 +38,8 @@ public class AccountController {
     })
     public ResponseEntity<ApiResponse<List<AccountReceivable>>> getReceivables(
             @Parameter(description = "客户ID") @RequestParam(required = false) String customerId,
-            @Parameter(description = "状态") @RequestParam(required = false) String status) {
+            @Parameter(description = "状态") @RequestParam(required = false) String status,
+            UserSession session) {
         List<AccountReceivable> list = accountAppService.listReceivables(customerId, status);
         return ResponseEntity.ok(ApiResponse.ok(list));
     }
@@ -47,7 +49,9 @@ public class AccountController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "成功创建应收账款")
     })
-    public ResponseEntity<ApiResponse<AccountReceivable>> createReceivable(@RequestBody Map<String, Object> request) {
+    public ResponseEntity<ApiResponse<AccountReceivable>> createReceivable(
+            @RequestBody Map<String, Object> request,
+            UserSession session) {
         AccountReceivable created = accountAppService.createReceivable(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(created));
     }
@@ -58,7 +62,8 @@ public class AccountController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "成功获取收款记录列表")
     })
     public ResponseEntity<ApiResponse<List<ReceiptRecord>>> getReceipts(
-            @Parameter(description = "应收账款ID", required = true) @PathVariable Long id) {
+            @Parameter(description = "应收账款ID", required = true) @PathVariable Long id,
+            UserSession session) {
         List<ReceiptRecord> list = accountAppService.listReceipts(id);
         return ResponseEntity.ok(ApiResponse.ok(list));
     }
@@ -70,7 +75,8 @@ public class AccountController {
     })
     public ResponseEntity<ApiResponse<ReceiptRecord>> createReceipt(
             @Parameter(description = "应收账款ID", required = true) @PathVariable Long id,
-            @RequestBody Map<String, Object> request) {
+            @RequestBody Map<String, Object> request,
+            UserSession session) {
         ReceiptRecord created = accountAppService.createReceipt(id, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(created));
     }
@@ -83,7 +89,8 @@ public class AccountController {
     })
     public ResponseEntity<ApiResponse<List<AccountPayable>>> getPayables(
             @Parameter(description = "供应商ID") @RequestParam(required = false) String supplierId,
-            @Parameter(description = "状态") @RequestParam(required = false) String status) {
+            @Parameter(description = "状态") @RequestParam(required = false) String status,
+            UserSession session) {
         List<AccountPayable> list = accountAppService.listPayables(supplierId, status);
         return ResponseEntity.ok(ApiResponse.ok(list));
     }
@@ -93,7 +100,9 @@ public class AccountController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "成功创建应付账款")
     })
-    public ResponseEntity<ApiResponse<AccountPayable>> createPayable(@RequestBody Map<String, Object> request) {
+    public ResponseEntity<ApiResponse<AccountPayable>> createPayable(
+            @RequestBody Map<String, Object> request,
+            UserSession session) {
         AccountPayable created = accountAppService.createPayable(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(created));
     }
@@ -104,7 +113,8 @@ public class AccountController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "成功获取付款记录列表")
     })
     public ResponseEntity<ApiResponse<List<PaymentRecord>>> getPayments(
-            @Parameter(description = "应付账款ID", required = true) @PathVariable Long id) {
+            @Parameter(description = "应付账款ID", required = true) @PathVariable Long id,
+            UserSession session) {
         List<PaymentRecord> list = accountAppService.listPayments(id);
         return ResponseEntity.ok(ApiResponse.ok(list));
     }
@@ -116,7 +126,8 @@ public class AccountController {
     })
     public ResponseEntity<ApiResponse<PaymentRecord>> createPayment(
             @Parameter(description = "应付账款ID", required = true) @PathVariable Long id,
-            @RequestBody Map<String, Object> request) {
+            @RequestBody Map<String, Object> request,
+            UserSession session) {
         PaymentRecord created = accountAppService.createPayment(id, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(created));
     }

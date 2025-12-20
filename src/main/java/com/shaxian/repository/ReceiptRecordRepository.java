@@ -10,8 +10,5 @@ import java.util.Optional;
 @Repository
 public interface ReceiptRecordRepository extends JpaRepository<ReceiptRecord, Long> {
     List<ReceiptRecord> findByAccountReceivableIdOrderByReceiptDateDesc(Long accountReceivableId);
-    List<ReceiptRecord> findAllByTenantId(Long tenantId);
-    Optional<ReceiptRecord> findByIdAndTenantId(Long id, Long tenantId);
-    boolean existsByIdAndTenantId(Long id, Long tenantId);
 }
 

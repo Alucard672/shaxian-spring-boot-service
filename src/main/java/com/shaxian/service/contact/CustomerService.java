@@ -36,7 +36,7 @@ public class CustomerService {
     @Transactional
     public Customer update(Long id, Customer customer) {
         Customer existing = customerRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("客户不存在"));
+                .orElseThrow(() -> new IllegalArgumentException("客户不存在或无权访问"));
 
         if (!existing.getCode().equals(customer.getCode()) &&
                 customerRepository.existsByCode(customer.getCode())) {
@@ -51,7 +51,7 @@ public class CustomerService {
     @Transactional
     public void delete(Long id) {
         if (!customerRepository.existsById(id)) {
-            throw new IllegalArgumentException("客户不存在");
+            throw new IllegalArgumentException("客户不存在或无权访问");
         }
         customerRepository.deleteById(id);
     }

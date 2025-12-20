@@ -16,9 +16,5 @@ public interface AdjustmentOrderRepository extends JpaRepository<AdjustmentOrder
            "(:type IS NULL OR CAST(ao.type AS string) = :type) " +
            "ORDER BY ao.createdAt DESC")
     List<AdjustmentOrder> findByFilters(@Param("status") String status, @Param("type") String type);
-    
-    List<AdjustmentOrder> findAllByTenantId(Long tenantId);
-    Optional<AdjustmentOrder> findByIdAndTenantId(Long id, Long tenantId);
-    boolean existsByIdAndTenantId(Long id, Long tenantId);
 }
 

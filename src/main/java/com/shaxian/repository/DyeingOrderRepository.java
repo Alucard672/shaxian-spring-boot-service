@@ -16,9 +16,5 @@ public interface DyeingOrderRepository extends JpaRepository<DyeingOrder, Long> 
            "(:productId IS NULL OR do.productId = :productId) " +
            "ORDER BY do.createdAt DESC")
     List<DyeingOrder> findByFilters(@Param("status") String status, @Param("productId") Long productId);
-    
-    List<DyeingOrder> findAllByTenantId(Long tenantId);
-    Optional<DyeingOrder> findByIdAndTenantId(Long id, Long tenantId);
-    boolean existsByIdAndTenantId(Long id, Long tenantId);
 }
 

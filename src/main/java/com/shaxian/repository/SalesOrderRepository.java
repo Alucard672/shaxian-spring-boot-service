@@ -22,9 +22,5 @@ public interface SalesOrderRepository extends JpaRepository<SalesOrder, Long> {
                                    @Param("customerId") Long customerId,
                                    @Param("startDate") LocalDate startDate,
                                    @Param("endDate") LocalDate endDate);
-    
-    List<SalesOrder> findAllByTenantId(Long tenantId);
-    Optional<SalesOrder> findByIdAndTenantId(Long id, Long tenantId);
-    boolean existsByIdAndTenantId(Long id, Long tenantId);
 }
 

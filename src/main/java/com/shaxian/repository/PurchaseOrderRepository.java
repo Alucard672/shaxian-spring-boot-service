@@ -22,9 +22,5 @@ public interface PurchaseOrderRepository extends JpaRepository<PurchaseOrder, Lo
                                       @Param("supplierId") Long supplierId,
                                       @Param("startDate") LocalDate startDate,
                                       @Param("endDate") LocalDate endDate);
-    
-    List<PurchaseOrder> findAllByTenantId(Long tenantId);
-    Optional<PurchaseOrder> findByIdAndTenantId(Long id, Long tenantId);
-    boolean existsByIdAndTenantId(Long id, Long tenantId);
 }
 

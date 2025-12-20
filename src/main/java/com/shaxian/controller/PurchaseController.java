@@ -2,6 +2,7 @@ package com.shaxian.controller;
 
 import com.shaxian.api.ApiResponse;
 import com.shaxian.appservice.purchase.PurchaseAppService;
+import com.shaxian.auth.UserSession;
 import com.shaxian.entity.PurchaseOrder;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -34,7 +35,8 @@ public class PurchaseController {
     public ResponseEntity<ApiResponse<List<PurchaseOrder>>> getAllPurchases(
             @RequestParam(required = false) Integer pageNo,
             @RequestParam(required = false) Integer pageSize,
-            @RequestBody(required = false) com.shaxian.dto.purchase.request.PurchaseOrderQueryRequest request) {
+            @RequestBody(required = false) com.shaxian.dto.purchase.request.PurchaseOrderQueryRequest request,
+            UserSession session) {
         String status = request != null ? request.getStatus() : null;
         Long supplierId = request != null ? request.getSupplierId() : null;
         LocalDate startDate = request != null ? request.getStartDate() : null;
@@ -50,7 +52,8 @@ public class PurchaseController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "采购订单不存在")
     })
     public ResponseEntity<ApiResponse<PurchaseOrder>> getPurchase(
-            @Parameter(description = "采购订单ID", required = true) @PathVariable Long id) {
+            @Parameter(description = "采购订单ID", required = true) @PathVariable Long id,
+            UserSession session) {
         return purchaseAppService.findById(id)
                 .map(order -> ResponseEntity.ok(ApiResponse.ok(order)))
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -62,7 +65,9 @@ public class PurchaseController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "成功创建采购订单")
     })
-    public ResponseEntity<ApiResponse<PurchaseOrder>> createPurchase(@RequestBody com.shaxian.dto.purchase.request.CreatePurchaseOrderRequest request) {
+    public ResponseEntity<ApiResponse<PurchaseOrder>> createPurchase(
+            @RequestBody com.shaxian.dto.purchase.request.CreatePurchaseOrderRequest request,
+            UserSession session) {
         PurchaseOrder created = purchaseAppService.createPurchase(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(created));
     }
@@ -74,7 +79,8 @@ public class PurchaseController {
     })
     public ResponseEntity<ApiResponse<PurchaseOrder>> updatePurchase(
             @Parameter(description = "采购订单ID", required = true) @PathVariable Long id,
-            @RequestBody com.shaxian.dto.purchase.request.UpdatePurchaseOrderRequest request) {
+            @RequestBody com.shaxian.dto.purchase.request.UpdatePurchaseOrderRequest request,
+            UserSession session) {
         PurchaseOrder updated = purchaseAppService.updatePurchase(id, request);
         return ResponseEntity.ok(ApiResponse.ok(updated));
     }
@@ -85,7 +91,8 @@ public class PurchaseController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "204", description = "成功删除采购订单")
     })
     public ResponseEntity<ApiResponse<Void>> deletePurchase(
-            @Parameter(description = "采购订单ID", required = true) @PathVariable Long id) {
+            @Parameter(description = "采购订单ID", required = true) @PathVariable Long id,
+            UserSession session) {
         purchaseAppService.deletePurchase(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(ApiResponse.ok(null));
     }

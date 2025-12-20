@@ -11,8 +11,5 @@ import java.util.Optional;
 public interface DyeingOrderItemRepository extends JpaRepository<DyeingOrderItem, Long> {
     List<DyeingOrderItem> findByOrderId(Long orderId);
     void deleteByOrderId(Long orderId);
-    List<DyeingOrderItem> findAllByTenantId(Long tenantId);
-    Optional<DyeingOrderItem> findByIdAndTenantId(Long id, Long tenantId);
-    boolean existsByIdAndTenantId(Long id, Long tenantId);
 }
 

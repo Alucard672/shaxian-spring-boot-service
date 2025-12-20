@@ -16,7 +16,7 @@ public class ProductDeleteService {
     @Transactional
     public void delete(Long id) {
         if (!productRepository.existsById(id)) {
-            throw new IllegalArgumentException("商品不存在");
+            throw new IllegalArgumentException("商品不存在或无权访问");
         }
         productRepository.deleteById(id);
     }

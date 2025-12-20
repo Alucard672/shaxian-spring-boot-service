@@ -16,9 +16,5 @@ public interface AccountReceivableRepository extends JpaRepository<AccountReceiv
            "(:status IS NULL OR CAST(ar.status AS string) = :status) " +
            "ORDER BY ar.accountDate DESC")
     List<AccountReceivable> findByFilters(@Param("customerId") Long customerId, @Param("status") String status);
-    
-    List<AccountReceivable> findAllByTenantId(Long tenantId);
-    Optional<AccountReceivable> findByIdAndTenantId(Long id, Long tenantId);
-    boolean existsByIdAndTenantId(Long id, Long tenantId);
 }
 

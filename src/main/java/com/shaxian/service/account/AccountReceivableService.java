@@ -42,15 +42,19 @@ public class AccountReceivableService {
     }
 
     public List<ReceiptRecord> findReceipts(Long receivableId) {
+        AccountReceivable receivable = accountReceivableRepository.findById(receivableId)
+                .orElseThrow(() -> new IllegalArgumentException("应收账款不存在或无权访问"));
         return receiptRecordRepository.findByAccountReceivableIdOrderByReceiptDateDesc(receivableId);
     }
 
     @Transactional
     public ReceiptRecord addReceipt(Long receivableId, ReceiptRecord receipt) {
+        AccountReceivable receivable = accountReceivableRepository.findById(receivableId)
+                .orElseThrow(() -> new IllegalArgumentException("应收账款不存在或无权访问"));
+        
         receipt.setAccountReceivableId(receivableId);
         ReceiptRecord saved = receiptRecordRepository.save(receipt);
 
-        AccountReceivable receivable = accountReceivableRepository.findById(receivableId).orElseThrow();
         BigDecimal newReceivedAmount = receivable.getReceivedAmount().add(receipt.getAmount());
         receivable.setReceivedAmount(newReceivedAmount);
         BigDecimal newUnpaidAmount = receivable.getReceivableAmount().subtract(newReceivedAmount);

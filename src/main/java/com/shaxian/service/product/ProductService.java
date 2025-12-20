@@ -37,7 +37,7 @@ public class ProductService {
     @Transactional
     public Product updateProduct(Long id, Product product) {
         Product existing = productRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("商品不存在"));
+                .orElseThrow(() -> new IllegalArgumentException("商品不存在或无权访问"));
         
         // 检查编码是否重复（排除自己）
         if (!existing.getCode().equals(product.getCode()) && 
@@ -53,7 +53,7 @@ public class ProductService {
     @Transactional
     public void deleteProduct(Long id) {
         if (!productRepository.existsById(id)) {
-            throw new IllegalArgumentException("商品不存在");
+            throw new IllegalArgumentException("商品不存在或无权访问");
         }
         productRepository.deleteById(id);
     }

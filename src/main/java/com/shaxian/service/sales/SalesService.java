@@ -75,7 +75,7 @@ public class SalesService {
     @Transactional
     public SalesOrder updateSales(Long id, SalesOrder order, List<SalesOrderItem> items) {
         SalesOrder existing = salesOrderRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("销售单不存在"));
+                .orElseThrow(() -> new IllegalArgumentException("销售单不存在或无权访问"));
         
         if (existing.getStatus() != SalesOrder.OrderStatus.DRAFT) {
             throw new IllegalArgumentException("只能修改草稿状态的订单");
@@ -109,7 +109,7 @@ public class SalesService {
     @Transactional
     public void deleteSales(Long id) {
         SalesOrder order = salesOrderRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("销售单不存在"));
+                .orElseThrow(() -> new IllegalArgumentException("销售单不存在或无权访问"));
         
         if (order.getStatus() != SalesOrder.OrderStatus.DRAFT) {
             throw new IllegalArgumentException("只能删除草稿状态的订单");

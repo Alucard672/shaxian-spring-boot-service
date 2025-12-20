@@ -10,8 +10,5 @@ import java.util.Optional;
 @Repository
 public interface PaymentRecordRepository extends JpaRepository<PaymentRecord, Long> {
     List<PaymentRecord> findByAccountPayableIdOrderByPaymentDateDesc(Long accountPayableId);
-    List<PaymentRecord> findAllByTenantId(Long tenantId);
-    Optional<PaymentRecord> findByIdAndTenantId(Long id, Long tenantId);
-    boolean existsByIdAndTenantId(Long id, Long tenantId);
 }
 

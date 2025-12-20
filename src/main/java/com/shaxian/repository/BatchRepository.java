@@ -24,8 +24,4 @@ public interface BatchRepository extends JpaRepository<Batch, Long> {
     @Modifying
     @Query("UPDATE Batch b SET b.stockQuantity = b.stockQuantity + :quantity WHERE b.id = :batchId")
     void increaseStock(@Param("batchId") Long batchId, @Param("quantity") BigDecimal quantity);
-    
-    List<Batch> findAllByTenantId(Long tenantId);
-    Optional<Batch> findByIdAndTenantId(Long id, Long tenantId);
-    boolean existsByIdAndTenantId(Long id, Long tenantId);
 }

@@ -16,7 +16,7 @@ public class ProductColorDeleteService {
     @Transactional
     public void delete(Long id) {
         if (!colorRepository.existsById(id)) {
-            throw new IllegalArgumentException("色号不存在");
+            throw new IllegalArgumentException("色号不存在或无权访问");
         }
         colorRepository.deleteById(id);
     }

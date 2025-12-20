@@ -2,6 +2,7 @@ package com.shaxian.controller;
 
 import com.shaxian.api.ApiResponse;
 import com.shaxian.appservice.inventory.InventoryAppService;
+import com.shaxian.auth.UserSession;
 import com.shaxian.entity.AdjustmentOrder;
 import com.shaxian.entity.InventoryCheckOrder;
 import io.swagger.v3.oas.annotations.Operation;
@@ -35,7 +36,8 @@ public class InventoryController {
     })
     public ResponseEntity<ApiResponse<List<AdjustmentOrder>>> getAdjustments(
             @Parameter(description = "状态") @RequestParam(required = false) String status,
-            @Parameter(description = "类型") @RequestParam(required = false) String type) {
+            @Parameter(description = "类型") @RequestParam(required = false) String type,
+            UserSession session) {
         List<AdjustmentOrder> orders = inventoryAppService.listAdjustments(status, type);
         return ResponseEntity.ok(ApiResponse.ok(orders));
     }
@@ -47,7 +49,8 @@ public class InventoryController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "库存调整单不存在")
     })
     public ResponseEntity<ApiResponse<AdjustmentOrder>> getAdjustment(
-            @Parameter(description = "库存调整单ID", required = true) @PathVariable Long id) {
+            @Parameter(description = "库存调整单ID", required = true) @PathVariable Long id,
+            UserSession session) {
         return inventoryAppService.findAdjustment(id)
                 .map(order -> ResponseEntity.ok(ApiResponse.ok(order)))
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -59,7 +62,9 @@ public class InventoryController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "成功创建库存调整单")
     })
-    public ResponseEntity<ApiResponse<AdjustmentOrder>> createAdjustment(@RequestBody Map<String, Object> request) {
+    public ResponseEntity<ApiResponse<AdjustmentOrder>> createAdjustment(
+            @RequestBody Map<String, Object> request,
+            UserSession session) {
         AdjustmentOrder created = inventoryAppService.createAdjustment(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(created));
     }
@@ -71,7 +76,8 @@ public class InventoryController {
     })
     public ResponseEntity<ApiResponse<AdjustmentOrder>> updateAdjustment(
             @Parameter(description = "库存调整单ID", required = true) @PathVariable Long id,
-            @RequestBody Map<String, Object> request) {
+            @RequestBody Map<String, Object> request,
+            UserSession session) {
         AdjustmentOrder updated = inventoryAppService.updateAdjustment(id, request);
         return ResponseEntity.ok(ApiResponse.ok(updated));
     }
@@ -84,7 +90,8 @@ public class InventoryController {
     })
     public ResponseEntity<ApiResponse<List<InventoryCheckOrder>>> getChecks(
             @Parameter(description = "状态") @RequestParam(required = false) String status,
-            @Parameter(description = "仓库") @RequestParam(required = false) String warehouse) {
+            @Parameter(description = "仓库") @RequestParam(required = false) String warehouse,
+            UserSession session) {
         List<InventoryCheckOrder> orders = inventoryAppService.listChecks(status, warehouse);
         return ResponseEntity.ok(ApiResponse.ok(orders));
     }
@@ -96,7 +103,8 @@ public class InventoryController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "盘点单不存在")
     })
     public ResponseEntity<ApiResponse<InventoryCheckOrder>> getCheck(
-            @Parameter(description = "盘点单ID", required = true) @PathVariable Long id) {
+            @Parameter(description = "盘点单ID", required = true) @PathVariable Long id,
+            UserSession session) {
         return inventoryAppService.findCheck(id)
                 .map(order -> ResponseEntity.ok(ApiResponse.ok(order)))
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -108,7 +116,9 @@ public class InventoryController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "成功创建盘点单")
     })
-    public ResponseEntity<ApiResponse<InventoryCheckOrder>> createCheck(@RequestBody Map<String, Object> request) {
+    public ResponseEntity<ApiResponse<InventoryCheckOrder>> createCheck(
+            @RequestBody Map<String, Object> request,
+            UserSession session) {
         InventoryCheckOrder created = inventoryAppService.createCheck(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(created));
     }
@@ -120,7 +130,8 @@ public class InventoryController {
     })
     public ResponseEntity<ApiResponse<InventoryCheckOrder>> updateCheck(
             @Parameter(description = "盘点单ID", required = true) @PathVariable Long id,
-            @RequestBody Map<String, Object> request) {
+            @RequestBody Map<String, Object> request,
+            UserSession session) {
         InventoryCheckOrder updated = inventoryAppService.updateCheck(id, request);
         return ResponseEntity.ok(ApiResponse.ok(updated));
     }
@@ -131,7 +142,8 @@ public class InventoryController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "204", description = "成功删除盘点单")
     })
     public ResponseEntity<ApiResponse<Void>> deleteCheck(
-            @Parameter(description = "盘点单ID", required = true) @PathVariable Long id) {
+            @Parameter(description = "盘点单ID", required = true) @PathVariable Long id,
+            UserSession session) {
         inventoryAppService.deleteCheck(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(ApiResponse.ok(null));
     }

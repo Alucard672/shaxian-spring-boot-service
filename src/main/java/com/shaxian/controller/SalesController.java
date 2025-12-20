@@ -2,6 +2,7 @@ package com.shaxian.controller;
 
 import com.shaxian.api.ApiResponse;
 import com.shaxian.appservice.sales.SalesAppService;
+import com.shaxian.auth.UserSession;
 import com.shaxian.entity.SalesOrder;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -34,7 +35,8 @@ public class SalesController {
     public ResponseEntity<ApiResponse<List<SalesOrder>>> getAllSales(
             @RequestParam(required = false) Integer pageNo,
             @RequestParam(required = false) Integer pageSize,
-            @RequestBody(required = false) com.shaxian.dto.sales.request.SalesOrderQueryRequest request) {
+            @RequestBody(required = false) com.shaxian.dto.sales.request.SalesOrderQueryRequest request,
+            UserSession session) {
         String status = request != null ? request.getStatus() : null;
         Long customerId = request != null ? request.getCustomerId() : null;
         LocalDate startDate = request != null ? request.getStartDate() : null;
@@ -50,7 +52,8 @@ public class SalesController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "销售订单不存在")
     })
     public ResponseEntity<ApiResponse<SalesOrder>> getSales(
-            @Parameter(description = "销售订单ID", required = true) @PathVariable Long id) {
+            @Parameter(description = "销售订单ID", required = true) @PathVariable Long id,
+            UserSession session) {
         return salesAppService.findById(id)
                 .map(order -> ResponseEntity.ok(ApiResponse.ok(order)))
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -62,7 +65,9 @@ public class SalesController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "成功创建销售订单")
     })
-    public ResponseEntity<ApiResponse<SalesOrder>> createSales(@RequestBody com.shaxian.dto.sales.request.CreateSalesOrderRequest request) {
+    public ResponseEntity<ApiResponse<SalesOrder>> createSales(
+            @RequestBody com.shaxian.dto.sales.request.CreateSalesOrderRequest request,
+            UserSession session) {
         SalesOrder created = salesAppService.createSales(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(created));
     }
@@ -74,7 +79,8 @@ public class SalesController {
     })
     public ResponseEntity<ApiResponse<SalesOrder>> updateSales(
             @Parameter(description = "销售订单ID", required = true) @PathVariable Long id,
-            @RequestBody com.shaxian.dto.sales.request.UpdateSalesOrderRequest request) {
+            @RequestBody com.shaxian.dto.sales.request.UpdateSalesOrderRequest request,
+            UserSession session) {
         SalesOrder updated = salesAppService.updateSales(id, request);
         return ResponseEntity.ok(ApiResponse.ok(updated));
     }
@@ -85,7 +91,8 @@ public class SalesController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "204", description = "成功删除销售订单")
     })
     public ResponseEntity<ApiResponse<Void>> deleteSales(
-            @Parameter(description = "销售订单ID", required = true) @PathVariable Long id) {
+            @Parameter(description = "销售订单ID", required = true) @PathVariable Long id,
+            UserSession session) {
         salesAppService.deleteSales(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(ApiResponse.ok(null));
     }

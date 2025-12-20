@@ -1,6 +1,7 @@
 package com.shaxian.auth;
 
 import com.shaxian.api.ApiResponse;
+import com.shaxian.util.TenantContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -55,6 +56,9 @@ public class SessionAuthInterceptor implements HandlerInterceptor {
             return false;
         }
 
+        // 将租户ID设置到ThreadLocal中，供Hibernate多租户使用
+        TenantContext.setTenantId(userSession.getTenantId());
+
         // 将 UserSession 存入请求属性，供后续参数解析器和业务层使用
         request.setAttribute(CURRENT_USER_SESSION, userSession);
 
@@ -71,6 +75,14 @@ public class SessionAuthInterceptor implements HandlerInterceptor {
             sessionId = request.getParameter(SESSION_ID_PARAM);
         }
         return sessionId;
+    }
+
+    /**
+     * 请求处理完成后清理ThreadLocal，避免内存泄漏
+     */
+    @Override
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
+        TenantContext.clear();
     }
 
     /**

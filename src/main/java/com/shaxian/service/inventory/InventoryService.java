@@ -73,7 +73,7 @@ public class InventoryService {
     @Transactional
     public AdjustmentOrder updateAdjustment(Long id, AdjustmentOrder order, List<AdjustmentOrderItem> items) {
         AdjustmentOrder existing = adjustmentOrderRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("库存调整单不存在"));
+                .orElseThrow(() -> new IllegalArgumentException("库存调整单不存在或无权访问"));
 
         AdjustmentOrder.OrderStatus oldStatus = existing.getStatus();
 
@@ -179,7 +179,7 @@ public class InventoryService {
     @Transactional
     public InventoryCheckOrder updateCheck(Long id, InventoryCheckOrder order, List<InventoryCheckItem> items) {
         InventoryCheckOrder existing = inventoryCheckOrderRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("盘点单不存在"));
+                .orElseThrow(() -> new IllegalArgumentException("盘点单不存在或无权访问"));
 
         if (order.getName() != null) {
             existing.setName(order.getName());
@@ -239,7 +239,7 @@ public class InventoryService {
     @Transactional
     public void deleteCheck(Long id) {
         if (!inventoryCheckOrderRepository.existsById(id)) {
-            throw new IllegalArgumentException("盘点单不存在");
+            throw new IllegalArgumentException("盘点单不存在或无权访问");
         }
         inventoryCheckOrderRepository.deleteById(id);
     }

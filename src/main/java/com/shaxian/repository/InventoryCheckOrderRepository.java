@@ -16,9 +16,5 @@ public interface InventoryCheckOrderRepository extends JpaRepository<InventoryCh
            "(:warehouse IS NULL OR ico.warehouse = :warehouse) " +
            "ORDER BY ico.createdAt DESC")
     List<InventoryCheckOrder> findByFilters(@Param("status") String status, @Param("warehouse") String warehouse);
-    
-    List<InventoryCheckOrder> findAllByTenantId(Long tenantId);
-    Optional<InventoryCheckOrder> findByIdAndTenantId(Long id, Long tenantId);
-    boolean existsByIdAndTenantId(Long id, Long tenantId);
 }
 

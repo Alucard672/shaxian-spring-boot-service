@@ -17,7 +17,7 @@ public class ProductUpdateService {
     @Transactional
     public Product update(Long id, Product product) {
         Product existing = productRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("商品不存在"));
+                .orElseThrow(() -> new IllegalArgumentException("商品不存在或无权访问"));
 
         if (!existing.getCode().equals(product.getCode())
                 && productRepository.existsByCode(product.getCode())) {

@@ -36,7 +36,7 @@ public class SupplierService {
     @Transactional
     public Supplier update(Long id, Supplier supplier) {
         Supplier existing = supplierRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("供应商不存在"));
+                .orElseThrow(() -> new IllegalArgumentException("供应商不存在或无权访问"));
 
         if (!existing.getCode().equals(supplier.getCode()) &&
                 supplierRepository.existsByCode(supplier.getCode())) {
@@ -51,7 +51,7 @@ public class SupplierService {
     @Transactional
     public void delete(Long id) {
         if (!supplierRepository.existsById(id)) {
-            throw new IllegalArgumentException("供应商不存在");
+            throw new IllegalArgumentException("供应商不存在或无权访问");
         }
         supplierRepository.deleteById(id);
     }

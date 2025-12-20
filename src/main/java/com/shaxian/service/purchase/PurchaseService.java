@@ -66,7 +66,7 @@ public class PurchaseService {
     @Transactional
     public PurchaseOrder updatePurchase(Long id, PurchaseOrder order, List<PurchaseOrderItem> items) {
         PurchaseOrder existing = purchaseOrderRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("进货单不存在"));
+                .orElseThrow(() -> new IllegalArgumentException("进货单不存在或无权访问"));
         
         if (existing.getStatus() != PurchaseOrder.OrderStatus.DRAFT) {
             throw new IllegalArgumentException("只能修改草稿状态的订单");
@@ -103,7 +103,7 @@ public class PurchaseService {
     @Transactional
     public void deletePurchase(Long id) {
         PurchaseOrder order = purchaseOrderRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("进货单不存在"));
+                .orElseThrow(() -> new IllegalArgumentException("进货单不存在或无权访问"));
         
         if (order.getStatus() != PurchaseOrder.OrderStatus.DRAFT) {
             throw new IllegalArgumentException("只能删除草稿状态的订单");

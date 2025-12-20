@@ -42,15 +42,19 @@ public class AccountPayableService {
     }
 
     public List<PaymentRecord> findPayments(Long payableId) {
+        AccountPayable payable = accountPayableRepository.findById(payableId)
+                .orElseThrow(() -> new IllegalArgumentException("应付账款不存在或无权访问"));
         return paymentRecordRepository.findByAccountPayableIdOrderByPaymentDateDesc(payableId);
     }
 
     @Transactional
     public PaymentRecord addPayment(Long payableId, PaymentRecord payment) {
+        AccountPayable payable = accountPayableRepository.findById(payableId)
+                .orElseThrow(() -> new IllegalArgumentException("应付账款不存在或无权访问"));
+        
         payment.setAccountPayableId(payableId);
         PaymentRecord saved = paymentRecordRepository.save(payment);
 
-        AccountPayable payable = accountPayableRepository.findById(payableId).orElseThrow();
         BigDecimal newPaidAmount = payable.getPaidAmount().add(payment.getAmount());
         payable.setPaidAmount(newPaidAmount);
         BigDecimal newUnpaidAmount = payable.getPayableAmount().subtract(newPaidAmount);

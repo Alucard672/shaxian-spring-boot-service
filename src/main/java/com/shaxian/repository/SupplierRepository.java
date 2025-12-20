@@ -11,8 +11,5 @@ import java.util.Optional;
 public interface SupplierRepository extends JpaRepository<Supplier, Long> {
     Optional<Supplier> findByCode(String code);
     boolean existsByCode(String code);
-    List<Supplier> findAllByTenantId(Long tenantId);
-    Optional<Supplier> findByIdAndTenantId(Long id, Long tenantId);
-    boolean existsByIdAndTenantId(Long id, Long tenantId);
 }
 

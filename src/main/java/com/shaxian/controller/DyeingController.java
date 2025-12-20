@@ -1,5 +1,6 @@
 package com.shaxian.controller;
 
+import com.shaxian.auth.UserSession;
 import com.shaxian.entity.DyeingOrder;
 import com.shaxian.entity.DyeingOrderItem;
 import com.shaxian.repository.DyeingOrderItemRepository;
@@ -15,7 +16,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -43,7 +43,8 @@ public class DyeingController {
     public ResponseEntity<List<DyeingOrder>> getAllDyeingOrders(
             @RequestParam(required = false) Integer pageNo,
             @RequestParam(required = false) Integer pageSize,
-            @RequestBody(required = false) com.shaxian.dto.dyeing.request.DyeingOrderQueryRequest request) {
+            @RequestBody(required = false) com.shaxian.dto.dyeing.request.DyeingOrderQueryRequest request,
+            UserSession session) {
         String status = request != null ? request.getStatus() : null;
         Long productId = request != null ? request.getProductId() : null;
         List<DyeingOrder> orders = dyeingOrderRepository.findByFilters(status, productId);
@@ -58,7 +59,8 @@ public class DyeingController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "染色加工单不存在")
     })
     public ResponseEntity<DyeingOrder> getDyeingOrder(
-            @Parameter(description = "染色加工单ID", required = true) @PathVariable Long id) {
+            @Parameter(description = "染色加工单ID", required = true) @PathVariable Long id,
+            UserSession session) {
         Optional<DyeingOrder> order = dyeingOrderRepository.findById(id);
         if (order.isPresent()) {
             order.get().setItems(dyeingOrderItemRepository.findByOrderId(id));
@@ -73,7 +75,9 @@ public class DyeingController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "成功创建染色加工单"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "请求参数错误")
     })
-    public ResponseEntity<?> createDyeingOrder(@RequestBody com.shaxian.dto.dyeing.request.CreateDyeingOrderRequest request) {
+    public ResponseEntity<?> createDyeingOrder(
+            @RequestBody com.shaxian.dto.dyeing.request.CreateDyeingOrderRequest request,
+            UserSession session) {
         try {
             DyeingOrder order = new DyeingOrder();
             order.setOrderNumber(OrderNumberGenerator.generateDyeingOrderNumber());
@@ -128,10 +132,11 @@ public class DyeingController {
     })
     public ResponseEntity<?> updateDyeingOrder(
             @Parameter(description = "染色加工单ID", required = true) @PathVariable Long id,
-            @RequestBody com.shaxian.dto.dyeing.request.UpdateDyeingOrderRequest request) {
+            @RequestBody com.shaxian.dto.dyeing.request.UpdateDyeingOrderRequest request,
+            UserSession session) {
         try {
             DyeingOrder order = dyeingOrderRepository.findById(id)
-                    .orElseThrow(() -> new IllegalArgumentException("染色加工单不存在"));
+                    .orElseThrow(() -> new IllegalArgumentException("染色加工单不存在或无权访问"));
             
             if (request.getProductId() != null) order.setProductId(request.getProductId());
             if (request.getProductName() != null) order.setProductName(request.getProductName());
@@ -188,7 +193,8 @@ public class DyeingController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "染色加工单不存在")
     })
     public ResponseEntity<Void> deleteDyeingOrder(
-            @Parameter(description = "染色加工单ID", required = true) @PathVariable Long id) {
+            @Parameter(description = "染色加工单ID", required = true) @PathVariable Long id,
+            UserSession session) {
         if (!dyeingOrderRepository.existsById(id)) {
             return ResponseEntity.notFound().build();
         }

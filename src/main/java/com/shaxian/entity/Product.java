@@ -3,6 +3,7 @@ package com.shaxian.entity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.TenantId;
 import java.time.LocalDateTime;
 
 @Data
@@ -15,6 +16,7 @@ public class Product {
     @Schema(description = "商品ID", example = "1")
     private Long id;
 
+    @TenantId
     @Column(name = "tenant_id", nullable = false)
     @Schema(description = "租户ID")
     private Long tenantId;

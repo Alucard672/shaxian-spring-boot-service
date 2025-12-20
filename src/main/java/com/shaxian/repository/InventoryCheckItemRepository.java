@@ -11,8 +11,5 @@ import java.util.Optional;
 public interface InventoryCheckItemRepository extends JpaRepository<InventoryCheckItem, Long> {
     List<InventoryCheckItem> findByOrderId(Long orderId);
     void deleteByOrderId(Long orderId);
-    List<InventoryCheckItem> findAllByTenantId(Long tenantId);
-    Optional<InventoryCheckItem> findByIdAndTenantId(Long id, Long tenantId);
-    boolean existsByIdAndTenantId(Long id, Long tenantId);
 }
 

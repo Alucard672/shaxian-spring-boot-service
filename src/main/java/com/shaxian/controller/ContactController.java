@@ -2,6 +2,7 @@ package com.shaxian.controller;
 
 import com.shaxian.api.ApiResponse;
 import com.shaxian.appservice.contact.ContactAppService;
+import com.shaxian.auth.UserSession;
 import com.shaxian.dto.contact.request.CreateCustomerRequest;
 import com.shaxian.dto.contact.request.CreateSupplierRequest;
 import com.shaxian.dto.contact.request.UpdateCustomerRequest;
@@ -36,7 +37,7 @@ public class ContactController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "成功获取客户列表")
     })
-    public ResponseEntity<ApiResponse<List<Customer>>> getAllCustomers() {
+    public ResponseEntity<ApiResponse<List<Customer>>> getAllCustomers(UserSession session) {
         List<Customer> customers = contactAppService.listCustomers();
         return ResponseEntity.ok(ApiResponse.ok(customers));
     }
@@ -48,7 +49,8 @@ public class ContactController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "客户不存在")
     })
     public ResponseEntity<ApiResponse<Customer>> getCustomer(
-            @Parameter(description = "客户ID", required = true) @PathVariable Long id) {
+            @Parameter(description = "客户ID", required = true) @PathVariable Long id,
+            UserSession session) {
         return contactAppService.findCustomer(id)
                 .map(customer -> ResponseEntity.ok(ApiResponse.ok(customer)))
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -60,7 +62,9 @@ public class ContactController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "成功创建客户")
     })
-    public ResponseEntity<ApiResponse<Customer>> createCustomer(@RequestBody CreateCustomerRequest request) {
+    public ResponseEntity<ApiResponse<Customer>> createCustomer(
+            @RequestBody CreateCustomerRequest request,
+            UserSession session) {
         Customer created = contactAppService.createCustomer(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(created));
     }
@@ -72,7 +76,8 @@ public class ContactController {
     })
     public ResponseEntity<ApiResponse<Customer>> updateCustomer(
             @Parameter(description = "客户ID", required = true) @PathVariable Long id,
-            @RequestBody UpdateCustomerRequest request) {
+            @RequestBody UpdateCustomerRequest request,
+            UserSession session) {
         Customer updated = contactAppService.updateCustomer(id, request);
         return ResponseEntity.ok(ApiResponse.ok(updated));
     }
@@ -83,7 +88,8 @@ public class ContactController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "204", description = "成功删除客户")
     })
     public ResponseEntity<ApiResponse<Void>> deleteCustomer(
-            @Parameter(description = "客户ID", required = true) @PathVariable Long id) {
+            @Parameter(description = "客户ID", required = true) @PathVariable Long id,
+            UserSession session) {
         contactAppService.deleteCustomer(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(ApiResponse.ok(null));
     }
@@ -94,7 +100,7 @@ public class ContactController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "成功获取供应商列表")
     })
-    public ResponseEntity<ApiResponse<List<Supplier>>> getAllSuppliers() {
+    public ResponseEntity<ApiResponse<List<Supplier>>> getAllSuppliers(UserSession session) {
         List<Supplier> suppliers = contactAppService.listSuppliers();
         return ResponseEntity.ok(ApiResponse.ok(suppliers));
     }
@@ -106,7 +112,8 @@ public class ContactController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "供应商不存在")
     })
     public ResponseEntity<ApiResponse<Supplier>> getSupplier(
-            @Parameter(description = "供应商ID", required = true) @PathVariable Long id) {
+            @Parameter(description = "供应商ID", required = true) @PathVariable Long id,
+            UserSession session) {
         return contactAppService.findSupplier(id)
                 .map(supplier -> ResponseEntity.ok(ApiResponse.ok(supplier)))
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -118,7 +125,9 @@ public class ContactController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "成功创建供应商")
     })
-    public ResponseEntity<ApiResponse<Supplier>> createSupplier(@RequestBody CreateSupplierRequest request) {
+    public ResponseEntity<ApiResponse<Supplier>> createSupplier(
+            @RequestBody CreateSupplierRequest request,
+            UserSession session) {
         Supplier created = contactAppService.createSupplier(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(created));
     }
@@ -130,7 +139,8 @@ public class ContactController {
     })
     public ResponseEntity<ApiResponse<Supplier>> updateSupplier(
             @Parameter(description = "供应商ID", required = true) @PathVariable Long id,
-            @RequestBody UpdateSupplierRequest request) {
+            @RequestBody UpdateSupplierRequest request,
+            UserSession session) {
         Supplier updated = contactAppService.updateSupplier(id, request);
         return ResponseEntity.ok(ApiResponse.ok(updated));
     }
@@ -141,7 +151,8 @@ public class ContactController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "204", description = "成功删除供应商")
     })
     public ResponseEntity<ApiResponse<Void>> deleteSupplier(
-            @Parameter(description = "供应商ID", required = true) @PathVariable Long id) {
+            @Parameter(description = "供应商ID", required = true) @PathVariable Long id,
+            UserSession session) {
         contactAppService.deleteSupplier(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(ApiResponse.ok(null));
     }

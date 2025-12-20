@@ -11,8 +11,5 @@ import java.util.Optional;
 public interface ProductRepository extends JpaRepository<Product, Long> {
     Optional<Product> findByCode(String code);
     boolean existsByCode(String code);
-    List<Product> findAllByTenantId(Long tenantId);
-    Optional<Product> findByIdAndTenantId(Long id, Long tenantId);
-    boolean existsByIdAndTenantId(Long id, Long tenantId);
 }
 

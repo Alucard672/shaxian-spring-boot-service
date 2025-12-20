@@ -16,10 +16,8 @@ public class ProductColorUpdateService {
 
     @Transactional
     public Color update(Long id, Color color) {
-        if (!colorRepository.existsById(id)) {
-            throw new IllegalArgumentException("色号不存在");
-        }
-        Color existing = colorRepository.findById(id).orElseThrow();
+        Color existing = colorRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("色号不存在或无权访问"));
         color.setId(id);
         color.setProductId(existing.getProductId());
         color.setCreatedAt(existing.getCreatedAt());

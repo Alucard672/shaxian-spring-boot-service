@@ -11,8 +11,5 @@ import java.util.Optional;
 public interface AdjustmentOrderItemRepository extends JpaRepository<AdjustmentOrderItem, Long> {
     List<AdjustmentOrderItem> findByOrderId(Long orderId);
     void deleteByOrderId(Long orderId);
-    List<AdjustmentOrderItem> findAllByTenantId(Long tenantId);
-    Optional<AdjustmentOrderItem> findByIdAndTenantId(Long id, Long tenantId);
-    boolean existsByIdAndTenantId(Long id, Long tenantId);
 }
 

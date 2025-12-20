@@ -16,7 +16,7 @@ public class ProductBatchDeleteService {
     @Transactional
     public void delete(Long id) {
         if (!batchRepository.existsById(id)) {
-            throw new IllegalArgumentException("缸号不存在");
+            throw new IllegalArgumentException("缸号不存在或无权访问");
         }
         batchRepository.deleteById(id);
     }

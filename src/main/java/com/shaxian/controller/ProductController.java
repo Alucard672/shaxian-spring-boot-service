@@ -2,6 +2,7 @@ package com.shaxian.controller;
 
 import com.shaxian.api.ApiResponse;
 import com.shaxian.appservice.product.ProductAppService;
+import com.shaxian.auth.UserSession;
 import com.shaxian.dto.product.request.CreateBatchRequest;
 import com.shaxian.dto.product.request.CreateColorRequest;
 import com.shaxian.dto.product.request.CreateProductRequest;
@@ -37,7 +38,7 @@ public class ProductController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "成功获取商品列表")
     })
-    public ResponseEntity<ApiResponse<List<Product>>> getAllProducts() {
+    public ResponseEntity<ApiResponse<List<Product>>> getAllProducts(UserSession session) {
         List<Product> products = productAppService.listProducts();
         return ResponseEntity.ok(ApiResponse.ok(products));
     }
@@ -49,7 +50,8 @@ public class ProductController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "商品不存在")
     })
     public ResponseEntity<ApiResponse<Product>> getProduct(
-            @Parameter(description = "商品ID", required = true) @PathVariable Long id) {
+            @Parameter(description = "商品ID", required = true) @PathVariable Long id,
+            UserSession session) {
         return productAppService.findProduct(id)
                 .map(product -> ResponseEntity.ok(ApiResponse.ok(product)))
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -61,7 +63,9 @@ public class ProductController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "成功创建商品")
     })
-    public ResponseEntity<ApiResponse<Product>> createProduct(@RequestBody CreateProductRequest request) {
+    public ResponseEntity<ApiResponse<Product>> createProduct(
+            @RequestBody CreateProductRequest request,
+            UserSession session) {
         Product created = productAppService.createProduct(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(created));
     }
@@ -73,7 +77,8 @@ public class ProductController {
     })
     public ResponseEntity<ApiResponse<Product>> updateProduct(
             @Parameter(description = "商品ID", required = true) @PathVariable Long id,
-            @RequestBody UpdateProductRequest request) {
+            @RequestBody UpdateProductRequest request,
+            UserSession session) {
         Product updated = productAppService.updateProduct(id, request);
         return ResponseEntity.ok(ApiResponse.ok(updated));
     }
@@ -84,7 +89,8 @@ public class ProductController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "204", description = "成功删除商品")
     })
     public ResponseEntity<ApiResponse<Void>> deleteProduct(
-            @Parameter(description = "商品ID", required = true) @PathVariable Long id) {
+            @Parameter(description = "商品ID", required = true) @PathVariable Long id,
+            UserSession session) {
         productAppService.deleteProduct(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(ApiResponse.ok(null));
     }
@@ -96,7 +102,8 @@ public class ProductController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "成功获取色号列表")
     })
     public ResponseEntity<ApiResponse<List<Color>>> getColors(
-            @Parameter(description = "商品ID", required = true) @PathVariable Long id) {
+            @Parameter(description = "商品ID", required = true) @PathVariable Long id,
+            UserSession session) {
         List<Color> colors = productAppService.listColors(id);
         return ResponseEntity.ok(ApiResponse.ok(colors));
     }
@@ -108,7 +115,8 @@ public class ProductController {
     })
     public ResponseEntity<ApiResponse<Color>> createColor(
             @Parameter(description = "商品ID", required = true) @PathVariable Long id,
-            @RequestBody CreateColorRequest request) {
+            @RequestBody CreateColorRequest request,
+            UserSession session) {
         Color created = productAppService.createColor(id, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(created));
     }
@@ -120,7 +128,8 @@ public class ProductController {
     })
     public ResponseEntity<ApiResponse<Color>> updateColor(
             @Parameter(description = "色号ID", required = true) @PathVariable Long id,
-            @RequestBody UpdateColorRequest request) {
+            @RequestBody UpdateColorRequest request,
+            UserSession session) {
         Color updated = productAppService.updateColor(id, request);
         return ResponseEntity.ok(ApiResponse.ok(updated));
     }
@@ -131,7 +140,8 @@ public class ProductController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "204", description = "成功删除色号")
     })
     public ResponseEntity<ApiResponse<Void>> deleteColor(
-            @Parameter(description = "色号ID", required = true) @PathVariable Long id) {
+            @Parameter(description = "色号ID", required = true) @PathVariable Long id,
+            UserSession session) {
         productAppService.deleteColor(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(ApiResponse.ok(null));
     }
@@ -143,7 +153,8 @@ public class ProductController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "成功获取缸号列表")
     })
     public ResponseEntity<ApiResponse<List<Batch>>> getBatches(
-            @Parameter(description = "色号ID", required = true) @PathVariable Long colorId) {
+            @Parameter(description = "色号ID", required = true) @PathVariable Long colorId,
+            UserSession session) {
         List<Batch> batches = productAppService.listBatches(colorId);
         return ResponseEntity.ok(ApiResponse.ok(batches));
     }
@@ -155,7 +166,8 @@ public class ProductController {
     })
     public ResponseEntity<ApiResponse<Batch>> createBatch(
             @Parameter(description = "色号ID", required = true) @PathVariable Long colorId,
-            @RequestBody CreateBatchRequest request) {
+            @RequestBody CreateBatchRequest request,
+            UserSession session) {
         Batch created = productAppService.createBatch(colorId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(created));
     }
@@ -167,7 +179,8 @@ public class ProductController {
     })
     public ResponseEntity<ApiResponse<Batch>> updateBatch(
             @Parameter(description = "缸号ID", required = true) @PathVariable Long id,
-            @RequestBody UpdateBatchRequest request) {
+            @RequestBody UpdateBatchRequest request,
+            UserSession session) {
         Batch updated = productAppService.updateBatch(id, request);
         return ResponseEntity.ok(ApiResponse.ok(updated));
     }
@@ -178,7 +191,8 @@ public class ProductController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "204", description = "成功删除缸号")
     })
     public ResponseEntity<ApiResponse<Void>> deleteBatch(
-            @Parameter(description = "缸号ID", required = true) @PathVariable Long id) {
+            @Parameter(description = "缸号ID", required = true) @PathVariable Long id,
+            UserSession session) {
         productAppService.deleteBatch(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(ApiResponse.ok(null));
     }
