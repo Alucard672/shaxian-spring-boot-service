@@ -23,6 +23,11 @@
 
 所有 API 端点以 `/api` 开头，详见启动说明文档。
 
+启动应用后，可通过以下地址访问 Swagger API 文档：
+
+- **Swagger UI**: http://localhost:8080/swagger-ui.html
+- **OpenAPI JSON**: http://localhost:8080/v3/api-docs
+
 ## 项目状态
 
 当前版本已实现基础框架和部分核心功能，更多功能正在开发中。
