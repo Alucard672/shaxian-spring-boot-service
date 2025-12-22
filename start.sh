@@ -23,4 +23,9 @@ cd target
 
 # 运行应用
 echo "正在启动应用..."
-java -jar shaxian-server.jar
+if [ -n "$1" ]; then
+    echo "使用配置文件: application-$1.yml"
+    java -jar shaxian-server.jar --spring.profiles.active=$1
+else
+    java -jar shaxian-server.jar
+fi
