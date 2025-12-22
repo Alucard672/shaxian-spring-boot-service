@@ -40,8 +40,9 @@ public class AuthService {
             throw new IllegalArgumentException("账户已被禁用");
         }
 
-        // 查找用户的默认租户（允许为null，用户可以在登录后创建企业）
-        Tenant defaultTenant = userService.getDefaultTenant(user.getId()).orElse(null);
+        // 查找并设置默认租户
+        // 优先级：1. 已有默认租户 2. 用户自己创建的租户(OWNER) 3. 最新绑定的租户
+        Tenant defaultTenant = userService.findAndSetDefaultTenant(user.getId()).orElse(null);
 
         return new LoginResult(user, defaultTenant);
     }

@@ -35,7 +35,11 @@ public class TenantAppService {
         userTenant.setUserId(userId);
         userTenant.setTenantId(savedTenant.getId());
         userTenant.setRelationshipType(UserTenant.RelationshipType.OWNER);
-        userTenant.setIsDefault(false); // 创建租户时默认不设置为默认租户
+        
+        // 如果用户还没有默认租户，则将新创建的租户设置为默认租户
+        // 这样用户重新登录时就能在会话信息中找到企业信息
+        boolean hasDefaultTenant = userTenantRepository.findByUserIdAndIsDefaultTrue(userId).isPresent();
+        userTenant.setIsDefault(!hasDefaultTenant);
 
         userTenantRepository.save(userTenant);
 

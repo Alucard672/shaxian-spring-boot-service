@@ -71,6 +71,40 @@ public class UserService {
         return tenantRepository.findById(userTenant.get().getTenantId());
     }
 
+    /**
+     * 查找并设置默认租户
+     * 优先级：1. 已有默认租户 2. 用户自己创建的租户(OWNER) 3. 最新绑定的租户
+     */
+    @Transactional
+    public Optional<Tenant> findAndSetDefaultTenant(Long userId) {
+        // 1. 先查找是否已有默认租户
+        Optional<UserTenant> defaultTenant = userTenantRepository.findByUserIdAndIsDefaultTrue(userId);
+        if (defaultTenant.isPresent()) {
+            return tenantRepository.findById(defaultTenant.get().getTenantId());
+        }
+
+        // 2. 如果没有默认租户，查找用户自己创建的租户(OWNER)
+        List<UserTenant> ownerTenants = userTenantRepository
+                .findByUserIdAndRelationshipTypeOrderByCreatedAtDesc(userId, UserTenant.RelationshipType.OWNER);
+        if (!ownerTenants.isEmpty()) {
+            UserTenant ownerTenant = ownerTenants.get(0); // 取最新的
+            ownerTenant.setIsDefault(true);
+            userTenantRepository.save(ownerTenant);
+            return tenantRepository.findById(ownerTenant.getTenantId());
+        }
+
+        // 3. 如果还是没有，查找最新绑定的可访问租户
+        List<UserTenant> allTenants = userTenantRepository.findByUserIdOrderByCreatedAtDesc(userId);
+        if (!allTenants.isEmpty()) {
+            UserTenant latestTenant = allTenants.get(0); // 取最新的
+            latestTenant.setIsDefault(true);
+            userTenantRepository.save(latestTenant);
+            return tenantRepository.findById(latestTenant.getTenantId());
+        }
+
+        return Optional.empty();
+    }
+
     @Transactional
     public void setDefaultTenant(Long userId, Long tenantId) {
         // 验证用户和租户关联是否存在
@@ -106,7 +140,7 @@ public class UserService {
         }
 
         // 验证租户存在
-        Tenant tenant = tenantRepository.findById(tenantId)
+        tenantRepository.findById(tenantId)
                 .orElseThrow(() -> new IllegalArgumentException("租户不存在"));
 
         // 2. 检查User是否存在
