@@ -2,7 +2,7 @@
 
 ip=120.27.148.45
 user=root
-deploy_dir=/web/deploy/shaxian-erp
+deploy_dir=/web/deploy/shaxian-server
 app_jar=shaxian-server.jar
 app_log=/web/logs/shaxian-server/catalina.out
 local_jar=target/shaxian-server.jar
@@ -68,7 +68,7 @@ echo "正在重启应用..."
 # 先停止应用
 ssh $user@$ip "cd $deploy_dir && pkill -f $app_jar || true"
 # 再启动应用
-ssh $user@$ip "cd $deploy_dir && nohup java -jar $app_jar --spring.profiles.active=prod > $app_log 2>&1 &"
+ssh $user@$ip "cd $deploy_dir && sh run.sh"
 
 if [ $? -eq 0 ]; then
     echo "应用重启成功"
