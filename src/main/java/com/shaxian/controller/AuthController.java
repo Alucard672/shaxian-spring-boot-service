@@ -2,6 +2,7 @@ package com.shaxian.controller;
 
 import com.shaxian.api.ApiResponse;
 import com.shaxian.appservice.auth.AuthAppService;
+import com.shaxian.auth.UserSession;
 import com.shaxian.dto.auth.request.RegisterRequest;
 import com.shaxian.entity.UserTenant;
 import io.swagger.v3.oas.annotations.Operation;
@@ -46,12 +47,12 @@ public class AuthController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "登录成功"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "用户名或密码错误")
     })
-    public ResponseEntity<ApiResponse<Map<String, Object>>> login(@RequestBody Map<String, String> loginRequest) {
+    public ResponseEntity<ApiResponse<UserSession>> login(@RequestBody Map<String, String> loginRequest) {
         String phone = loginRequest.get("phone");
         String password = loginRequest.get("password");
 
-        Map<String, Object> userInfo = authAppService.login(phone, password);
-        return ResponseEntity.ok(ApiResponse.ok("登录成功", userInfo));
+        UserSession userSession = authAppService.login(phone, password);
+        return ResponseEntity.ok(ApiResponse.ok("登录成功", userSession));
     }
 
     @PostMapping("/logout")

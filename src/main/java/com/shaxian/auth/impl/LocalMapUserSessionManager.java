@@ -32,7 +32,8 @@ public class LocalMapUserSessionManager implements UserSessionManager {
                 null, // role 从User中获取，暂时为null
                 null, // position 从User中获取，暂时为null
                 tenant != null ? tenant.getId() : null,
-                tenant != null ? tenant.getName() : null
+                tenant != null ? tenant.getName() : null,
+                tenant != null ? tenant.getCode() : null
         );
         sessionMap.put(sessionId, userSession);
         return userSession;

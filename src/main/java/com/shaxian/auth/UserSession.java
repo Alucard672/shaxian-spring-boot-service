@@ -52,6 +52,11 @@ public class UserSession {
      */
     private String tenantName;
 
+    /**
+     * 租户代码
+     */
+    private String tenantCode;
+
     public UserSession() {
     }
 
@@ -65,7 +70,7 @@ public class UserSession {
         this.position = position;
     }
 
-    public UserSession(String sessionId, Long userId, String username, String phone, String email, String role, String position, Long tenantId, String tenantName) {
+    public UserSession(String sessionId, Long userId, String username, String phone, String email, String role, String position, Long tenantId, String tenantName, String tenantCode) {
         this.sessionId = sessionId;
         this.userId = userId;
         this.username = username;
@@ -75,5 +80,6 @@ public class UserSession {
         this.position = position;
         this.tenantId = tenantId;
         this.tenantName = tenantName;
+        this.tenantCode = tenantCode;
     }
 }

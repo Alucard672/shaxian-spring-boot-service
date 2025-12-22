@@ -41,7 +41,7 @@ public class AuthAppService {
     /**
      * 处理登录流程，返回前端需要的用户信息结构（包含 sessionId 和租户信息）
      */
-    public Map<String, Object> login(String phone, String password) {
+    public UserSession login(String phone, String password) {
         if (phone == null || password == null || phone.trim().isEmpty() || password.trim().isEmpty()) {
             throw new IllegalArgumentException("手机号和密码不能为空");
         }
@@ -54,18 +54,7 @@ public class AuthAppService {
         UserSession userSession = userSessionManager.createSession(user, tenant);
 
         // 返回包含 sessionId 的用户信息
-        Map<String, Object> userInfo = new HashMap<>();
-        userInfo.put("sessionId", userSession.getSessionId());
-        userInfo.put("id", userSession.getUserId());
-        userInfo.put("name", userSession.getUsername());
-        userInfo.put("phone", userSession.getPhone());
-        userInfo.put("email", userSession.getEmail());
-        userInfo.put("role", userSession.getRole());
-        userInfo.put("position", userSession.getPosition());
-        userInfo.put("tenantId", userSession.getTenantId());
-        userInfo.put("tenantName", userSession.getTenantName());
-
-        return userInfo;
+        return userSession;
     }
 
     /**
