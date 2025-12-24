@@ -24,7 +24,7 @@ spring:
         format_sql: true
         use_sql_comments: true
         multiTenancy: DISCRIMINATOR
-        tenant_identifier_resolver: com.shaxian.config.TenantIdentifierResolver
+        tenant_identifier_resolver: com.shaxian.biz.config.TenantIdentifierResolver
 
   jackson:
     time-zone: Asia/Shanghai
@@ -46,3 +46,6 @@ logging:
 tenant:
   default-expiry-days: 7
 
+crm:
+  admin-phones:
+    - 18267150617

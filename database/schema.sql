@@ -469,6 +469,23 @@ CREATE TABLE system_params (
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
+-- ========== CRM客户表 ==========
+
+-- CRM客户表（软件销售客户，全局管理，不分租户）
+CREATE TABLE crm_customers (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(200) NOT NULL,
+  address TEXT,
+  phone VARCHAR(50) NOT NULL,
+  remark TEXT,
+  source ENUM('ONLINE', 'OFFLINE', 'REFERRAL', 'EXHIBITION', 'ADVERTISING', 'OTHER') NOT NULL,
+  type ENUM('OFFICIAL', 'POTENTIAL') NOT NULL DEFAULT 'POTENTIAL',
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE INDEX ux_phone (phone),
+  INDEX idx_type (type)
+);
+
 -- ========== 打印模板表 ==========
 
 -- 打印模板表
