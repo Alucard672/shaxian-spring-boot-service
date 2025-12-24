@@ -60,17 +60,17 @@ alwaysApply: true
 - **包结构强制要求**
   - 所有 Controller 入参 `XxxRequest` 必须放在**对应业务的 `dto.request` 包**中，而不是 Controller 包下。
   - 统一包路径规范：
-    - 业务维度包：`com.shaxian.dto.<biz>.request`
+    - 业务维度包：`com.shaxian.biz.dto.<biz>.request`
     - 示例：
-      - 门店相关：`com.shaxian.dto.store.request.CreateStoreRequest`
-      - 染整相关：`com.shaxian.dto.dyeing.request.DyeingOrderQueryRequest`
-      - 联系我们：`com.shaxian.dto.contact.request.ContactCreateRequest`
+      - 门店相关：`com.shaxian.biz.dto.store.request.CreateStoreRequest`
+      - 染整相关：`com.shaxian.biz.dto.dyeing.request.DyeingOrderQueryRequest`
+      - 联系我们：`com.shaxian.biz.dto.contact.request.ContactCreateRequest`
   - 禁止的做法：
-    - 不允许在 `controller` 包下再建 `request` 子包（如 `com.shaxian.controller.store.request`）❌
+    - 不允许在 `controller` 包下再建 `request` 子包（如 `com.shaxian.biz.controller.store.request`）❌
     - 不允许将 `Request` 类放在 `entity`、`model`、`repository`、`service` 等包下 ❌
   - 业务模块如何划分 `<biz>`：
-    - 通常与当前 Controller 所在子包一一对应，例如 `com.shaxian.controller.store.StoreController`
-      对应 `com.shaxian.dto.store.request.*`。
+    - 通常与当前 Controller 所在子包一一对应，例如 `com.shaxian.biz.controller.store.StoreController`
+      对应 `com.shaxian.biz.dto.store.request.*`。
     - 若多个 Controller 共享同一业务 DTO，可共用同一个 `<biz>` 维度包，避免重复定义。
 
 ---
