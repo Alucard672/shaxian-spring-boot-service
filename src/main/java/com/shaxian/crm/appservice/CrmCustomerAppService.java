@@ -1,12 +1,14 @@
 package com.shaxian.crm.appservice;
 
+import com.shaxian.biz.api.PageResult;
 import com.shaxian.crm.dto.request.CreateCrmCustomerRequest;
+import com.shaxian.crm.dto.request.CrmCustomerQueryRequest;
 import com.shaxian.crm.dto.request.UpdateCrmCustomerRequest;
 import com.shaxian.crm.entity.CrmCustomer;
 import com.shaxian.crm.service.CrmCustomerService;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -18,8 +20,16 @@ public class CrmCustomerAppService {
         this.crmCustomerService = crmCustomerService;
     }
 
-    public List<CrmCustomer> listCustomers() {
-        return crmCustomerService.getAll();
+    public PageResult<CrmCustomer> queryCustomers(CrmCustomerQueryRequest request, Integer pageNo, Integer pageSize) {
+        Page<CrmCustomer> page = crmCustomerService.queryCustomers(
+                request.getName(),
+                request.getPhone(),
+                request.getSource(),
+                request.getType(),
+                pageNo,
+                pageSize
+        );
+        return PageResult.of(page.getContent(), page.getTotalElements(), pageNo, pageSize);
     }
 
     public Optional<CrmCustomer> findCustomer(Long id) {

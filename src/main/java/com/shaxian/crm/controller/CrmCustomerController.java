@@ -1,9 +1,11 @@
 package com.shaxian.crm.controller;
 
 import com.shaxian.biz.api.ApiResponse;
+import com.shaxian.biz.api.PageResult;
 import com.shaxian.biz.auth.UserSession;
 import com.shaxian.crm.appservice.CrmCustomerAppService;
 import com.shaxian.crm.dto.request.CreateCrmCustomerRequest;
+import com.shaxian.crm.dto.request.CrmCustomerQueryRequest;
 import com.shaxian.crm.dto.request.UpdateCrmCustomerRequest;
 import com.shaxian.crm.entity.CrmCustomer;
 import io.swagger.v3.oas.annotations.Operation;
@@ -14,8 +16,6 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/crm/customers")
@@ -28,14 +28,21 @@ public class CrmCustomerController {
         this.crmCustomerAppService = crmCustomerAppService;
     }
 
-    @GetMapping
-    @Operation(summary = "获取所有CRM客户", description = "获取CRM客户列表")
+    @PostMapping("/query")
+    @Operation(summary = "查询CRM客户列表", description = "分页查询CRM客户，支持按名称、手机号、来源、类型等条件筛选")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "成功获取客户列表")
     })
-    public ResponseEntity<ApiResponse<List<CrmCustomer>>> getAllCustomers(UserSession session) {
-        List<CrmCustomer> customers = crmCustomerAppService.listCustomers();
-        return ResponseEntity.ok(ApiResponse.ok(customers));
+    public ResponseEntity<ApiResponse<PageResult<CrmCustomer>>> queryCustomers(
+            @Parameter(description = "页码，从1开始", required = true) @RequestParam Integer pageNo,
+            @Parameter(description = "每页条数", required = true) @RequestParam Integer pageSize,
+            @RequestBody(required = false) CrmCustomerQueryRequest request,
+            UserSession session) {
+        if (request == null) {
+            request = new CrmCustomerQueryRequest();
+        }
+        PageResult<CrmCustomer> result = crmCustomerAppService.queryCustomers(request, pageNo, pageSize);
+        return ResponseEntity.ok(ApiResponse.ok(result));
     }
 
     @GetMapping("/{id}")

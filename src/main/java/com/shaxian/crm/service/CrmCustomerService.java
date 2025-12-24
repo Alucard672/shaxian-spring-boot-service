@@ -2,9 +2,17 @@ package com.shaxian.crm.service;
 
 import com.shaxian.crm.entity.CrmCustomer;
 import com.shaxian.crm.repository.CrmCustomerRepository;
+import jakarta.persistence.criteria.Predicate;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,6 +27,40 @@ public class CrmCustomerService {
 
     public List<CrmCustomer> getAll() {
         return crmCustomerRepository.findAll();
+    }
+
+    public Page<CrmCustomer> queryCustomers(String name, String phone, String source, String type, Integer pageNo, Integer pageSize) {
+        Specification<CrmCustomer> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            if (StringUtils.hasText(name)) {
+                predicates.add(cb.like(cb.lower(root.get("name")), "%" + name.toLowerCase() + "%"));
+            }
+            if (StringUtils.hasText(phone)) {
+                predicates.add(cb.like(root.get("phone"), "%" + phone + "%"));
+            }
+            if (StringUtils.hasText(source)) {
+                try {
+                    CrmCustomer.CustomerSource sourceEnum = CrmCustomer.CustomerSource.valueOf(source);
+                    predicates.add(cb.equal(root.get("source"), sourceEnum));
+                } catch (IllegalArgumentException e) {
+                    // 忽略无效的枚举值
+                }
+            }
+            if (StringUtils.hasText(type)) {
+                try {
+                    CrmCustomer.CustomerType typeEnum = CrmCustomer.CustomerType.valueOf(type);
+                    predicates.add(cb.equal(root.get("type"), typeEnum));
+                } catch (IllegalArgumentException e) {
+                    // 忽略无效的枚举值
+                }
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+
+        Pageable pageable = PageRequest.of(pageNo - 1, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
+        return crmCustomerRepository.findAll(spec, pageable);
     }
 
     public Optional<CrmCustomer> getById(Long id) {
