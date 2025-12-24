@@ -1,27 +1,21 @@
 package com.shaxian.crm.dto.request;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 @Data
+@Schema(description = "CRM客户查询请求")
 public class CrmCustomerQueryRequest {
-    /**
-     * 客户名称（模糊查询）
-     */
+    @Schema(description = "客户名称（模糊查询）", example = "张三")
     private String name;
 
-    /**
-     * 手机号（模糊查询）
-     */
+    @Schema(description = "手机号（模糊查询）", example = "13800138000")
     private String phone;
 
-    /**
-     * 客户来源：ONLINE, OFFLINE, REFERRAL, EXHIBITION, ADVERTISING, OTHER
-     */
+    @Schema(description = "客户来源", example = "ONLINE", allowableValues = {"ONLINE", "OFFLINE", "REFERRAL", "EXHIBITION", "ADVERTISING", "OTHER"})
     private String source;
 
-    /**
-     * 客户类型：OFFICIAL, POTENTIAL
-     */
+    @Schema(description = "客户类型", example = "OFFICIAL", allowableValues = {"OFFICIAL", "POTENTIAL"})
     private String type;
 }
 

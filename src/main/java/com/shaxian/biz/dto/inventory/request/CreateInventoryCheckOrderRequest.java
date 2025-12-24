@@ -1,5 +1,6 @@
 package com.shaxian.biz.dto.inventory.request;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
@@ -11,27 +12,35 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Data
+@Schema(description = "创建库存盘点单请求")
 public class CreateInventoryCheckOrderRequest {
     @NotBlank(message = "盘点单名称不能为空")
     @Size(max = 200, message = "盘点单名称长度不能超过200")
+    @Schema(description = "盘点单名称", required = true, example = "2024年1月盘点")
     private String name;
 
     @NotBlank(message = "仓库不能为空")
     @Size(max = 100, message = "仓库长度不能超过100")
+    @Schema(description = "仓库", required = true, example = "A区-1号仓库")
     private String warehouse;
 
     @NotNull(message = "计划日期不能为空")
+    @Schema(description = "计划日期", required = true, example = "2024-01-01")
     private LocalDate planDate;
 
+    @Schema(description = "盘点状态", example = "PLANNED", allowableValues = {"PLANNED", "CHECKING", "COMPLETED", "CANCELLED"})
     private String status; // PLANNED, CHECKING, COMPLETED, CANCELLED
 
     @NotNull(message = "操作员不能为空")
     @Size(max = 100, message = "操作员长度不能超过100")
+    @Schema(description = "操作员", required = true, example = "张三")
     private String operator;
 
+    @Schema(description = "备注", example = "月度盘点")
     private String remark;
 
     @NotEmpty(message = "订单明细不能为空")
     @Valid
+    @Schema(description = "盘点明细列表", required = true)
     private List<InventoryCheckItemRequest> items;
 }
