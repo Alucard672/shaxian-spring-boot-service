@@ -24,8 +24,7 @@ spring:
         format_sql: true
         use_sql_comments: true
         multiTenancy: DISCRIMINATOR
-        tenant_identifier_resolver: com.shaxian.biz.config.TenantIdentifierResolver
-
+        tenant_identifier_resolver: com.shaxian.tech.hibernate.TenantIdentifierResolver
   jackson:
     time-zone: Asia/Shanghai
     date-format: yyyy-MM-dd HH:mm:ss

@@ -1,4 +1,4 @@
-package com.shaxian.biz.config;
+package com.shaxian.tech.swagger;
 
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;

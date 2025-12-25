@@ -1,4 +1,4 @@
-package com.shaxian.biz.config;
+package com.shaxian.tech.hibernate;
 
 import com.shaxian.biz.util.TenantContext;
 import org.hibernate.context.spi.CurrentTenantIdentifierResolver;

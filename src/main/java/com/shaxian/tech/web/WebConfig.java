@@ -1,4 +1,4 @@
-package com.shaxian.biz.config;
+package com.shaxian.tech.web;
 
 import com.shaxian.biz.auth.SessionAuthInterceptor;
 import com.shaxian.biz.auth.UserSessionArgumentResolver;
