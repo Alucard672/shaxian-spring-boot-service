@@ -115,5 +115,40 @@ public class CrmCustomerService {
         }
         crmCustomerRepository.deleteById(id);
     }
+
+    /**
+     * 为用户注册创建潜在客户记录
+     * 如果客户已存在则跳过，如果不存在则创建新的潜在客户
+     *
+     * @param phone 手机号
+     * @param name 客户名称（可选，如果为空则使用手机号）
+     * @return 创建的客户或已存在的客户，如果创建失败返回null
+     */
+    @Transactional
+    public Optional<CrmCustomer> createPotentialCustomerForRegistration(String phone, String name) {
+        if (phone == null || phone.trim().isEmpty()) {
+            return Optional.empty();
+        }
+
+        // 检查是否已存在
+        Optional<CrmCustomer> existing = crmCustomerRepository.findByPhone(phone);
+        if (existing.isPresent()) {
+            return existing;
+        }
+
+        // 创建新的潜在客户
+        try {
+            CrmCustomer customer = new CrmCustomer();
+            customer.setName(name != null && !name.trim().isEmpty() ? name : phone);
+            customer.setPhone(phone);
+            customer.setSource(CrmCustomer.CustomerSource.ONLINE);
+            customer.setType(CrmCustomer.CustomerType.POTENTIAL);
+            customer.setRemark("用户自主注册");
+            return Optional.of(crmCustomerRepository.save(customer));
+        } catch (Exception e) {
+            // 创建失败时返回空，不影响注册流程
+            return Optional.empty();
+        }
+    }
 }
 

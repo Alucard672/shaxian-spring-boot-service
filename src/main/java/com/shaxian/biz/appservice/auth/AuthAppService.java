@@ -10,6 +10,8 @@ import com.shaxian.biz.repository.UserRepository;
 import com.shaxian.biz.repository.UserTenantRepository;
 import com.shaxian.biz.service.auth.AuthService;
 import com.shaxian.biz.service.user.UserService;
+import com.shaxian.biz.service.user.UserTenantService;
+import com.shaxian.crm.service.CrmCustomerService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,16 +28,21 @@ public class AuthAppService {
     private final UserTenantRepository userTenantRepository;
     private final TenantRepository tenantRepository;
     private final UserRepository userRepository;
+    private final CrmCustomerService crmCustomerService;
+    private final UserTenantService userTenantService;
 
     public AuthAppService(AuthService authService, UserSessionManager userSessionManager,
                           UserService userService, UserTenantRepository userTenantRepository,
-                          TenantRepository tenantRepository, UserRepository userRepository) {
+                          TenantRepository tenantRepository, UserRepository userRepository,
+                          CrmCustomerService crmCustomerService, UserTenantService userTenantService) {
         this.authService = authService;
         this.userSessionManager = userSessionManager;
         this.userService = userService;
         this.userTenantRepository = userTenantRepository;
         this.tenantRepository = tenantRepository;
         this.userRepository = userRepository;
+        this.crmCustomerService = crmCustomerService;
+        this.userTenantService = userTenantService;
     }
 
     /**
@@ -153,13 +160,13 @@ public class AuthAppService {
         user.setStatus(User.UserStatus.ACTIVE);
         user = userRepository.save(user);
 
+        // 同步创建CRM客户记录，标记为潜在客户
+        crmCustomerService.createPotentialCustomerForRegistration(phone, user.getName());
+
         // 如果提供了租户代码，创建用户租户关联
         if (tenant != null) {
-            UserTenant userTenant = new UserTenant();
-            userTenant.setUserId(user.getId());
-            userTenant.setTenantId(tenant.getId());
-            userTenant.setIsDefault(true);
-            userTenantRepository.save(userTenant);
+            // 使用领域服务统一处理用户关联租户的逻辑
+            userTenantService.associateUserWithTenant(user.getId(), tenant.getId(), UserTenant.RelationshipType.MEMBER, true); // 注册时关联的租户设为默认租户
 
             // 创建用户会话
             UserSession userSession = userSessionManager.createSession(user, tenant);

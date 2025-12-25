@@ -3,8 +3,8 @@ package com.shaxian.biz.appservice.tenant;
 import com.shaxian.biz.dto.tenant.request.CreateTenantRequest;
 import com.shaxian.biz.entity.Tenant;
 import com.shaxian.biz.entity.UserTenant;
-import com.shaxian.biz.repository.UserTenantRepository;
 import com.shaxian.biz.service.tenant.TenantService;
+import com.shaxian.biz.service.user.UserTenantService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,11 +12,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class TenantAppService {
 
     private final TenantService tenantService;
-    private final UserTenantRepository userTenantRepository;
+    private final UserTenantService userTenantService;
 
-    public TenantAppService(TenantService tenantService, UserTenantRepository userTenantRepository) {
+    public TenantAppService(TenantService tenantService, UserTenantService userTenantService) {
         this.tenantService = tenantService;
-        this.userTenantRepository = userTenantRepository;
+        this.userTenantService = userTenantService;
     }
 
     @Transactional
@@ -30,18 +30,11 @@ public class TenantAppService {
         // 创建租户
         Tenant savedTenant = tenantService.create(tenant);
 
+        // 使用领域服务统一处理用户关联租户的逻辑
         // 创建用户租户关联关系，设置为拥有者
-        UserTenant userTenant = new UserTenant();
-        userTenant.setUserId(userId);
-        userTenant.setTenantId(savedTenant.getId());
-        userTenant.setRelationshipType(UserTenant.RelationshipType.OWNER);
-        
         // 如果用户还没有默认租户，则将新创建的租户设置为默认租户
-        // 这样用户重新登录时就能在会话信息中找到企业信息
-        boolean hasDefaultTenant = userTenantRepository.findByUserIdAndIsDefaultTrue(userId).isPresent();
-        userTenant.setIsDefault(!hasDefaultTenant);
-
-        userTenantRepository.save(userTenant);
+        userTenantService.associateUserWithTenant(userId, savedTenant.getId(), 
+                UserTenant.RelationshipType.OWNER, false);
 
         return savedTenant;
     }

@@ -21,15 +21,18 @@ public class UserService {
     private final UserTenantRepository userTenantRepository;
     private final EmployeeRepository employeeRepository;
     private final TenantRepository tenantRepository;
+    private final UserTenantService userTenantService;
 
     public UserService(UserRepository userRepository,
                        UserTenantRepository userTenantRepository,
                        EmployeeRepository employeeRepository,
-                       TenantRepository tenantRepository) {
+                       TenantRepository tenantRepository,
+                       UserTenantService userTenantService) {
         this.userRepository = userRepository;
         this.userTenantRepository = userTenantRepository;
         this.employeeRepository = employeeRepository;
         this.tenantRepository = tenantRepository;
+        this.userTenantService = userTenantService;
     }
 
     public Optional<User> getByPhone(String phone) {
@@ -150,22 +153,12 @@ public class UserService {
             // 情况A：User已存在
             User user = existingUser.get();
 
-            // 检查关联是否已存在
-            Optional<UserTenant> existingRelation = userTenantRepository
-                    .findByUserIdAndTenantId(user.getId(), tenantId);
-
-            if (existingRelation.isEmpty()) {
-                // 创建关联
-                UserTenant userTenant = new UserTenant();
-                userTenant.setUserId(user.getId());
-                userTenant.setTenantId(tenantId);
-
-                // 如果用户还没有默认租户，设为默认
-                Optional<UserTenant> defaultTenant = userTenantRepository
-                        .findByUserIdAndIsDefaultTrue(user.getId());
-                userTenant.setIsDefault(defaultTenant.isEmpty());
-
-                userTenantRepository.save(userTenant);
+            // 检查关联是否已存在，如果不存在则创建关联
+            if (!userTenantService.isUserAssociatedWithTenant(user.getId(), tenantId)) {
+                // 使用领域服务统一处理用户关联租户的逻辑
+                // 如果用户还没有默认租户，会自动设置为默认
+                userTenantService.associateUserWithTenant(user.getId(), tenantId, 
+                        UserTenant.RelationshipType.MEMBER, false);
             }
 
             return user;
@@ -181,12 +174,10 @@ public class UserService {
             user.setStatus(User.UserStatus.ACTIVE);
             user = userRepository.save(user);
 
-            // 创建关联（第一个租户，设为默认）
-            UserTenant userTenant = new UserTenant();
-            userTenant.setUserId(user.getId());
-            userTenant.setTenantId(tenantId);
-            userTenant.setIsDefault(true);
-            userTenantRepository.save(userTenant);
+            // 使用领域服务统一处理用户关联租户的逻辑
+            // 第一个租户，设为默认
+            userTenantService.associateUserWithTenant(user.getId(), tenantId, 
+                    UserTenant.RelationshipType.MEMBER, true);
 
             return user;
         }
