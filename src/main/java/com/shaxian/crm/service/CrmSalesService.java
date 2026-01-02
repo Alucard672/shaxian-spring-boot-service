@@ -114,10 +114,28 @@ public class CrmSalesService {
         CrmSalesOrder existing = salesOrderRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("销售单不存在"));
         
+        // 如果订单不是草稿状态，只允许更新状态、已付金额等字段，不允许修改订单项
         if (existing.getStatus() != CrmSalesOrder.OrderStatus.DRAFT) {
-            throw new IllegalArgumentException("只能修改草稿状态的订单");
+            // 只更新允许的字段
+            if (order.getStatus() != null) {
+                existing.setStatus(order.getStatus());
+            }
+            if (order.getPaidAmount() != null) {
+                existing.setPaidAmount(order.getPaidAmount());
+                existing.setUnpaidAmount(existing.getTotalAmount().subtract(order.getPaidAmount()));
+            }
+            if (order.getOperator() != null) {
+                existing.setOperator(order.getOperator());
+            }
+            if (order.getRemark() != null) {
+                existing.setRemark(order.getRemark());
+            }
+            CrmSalesOrder saved = salesOrderRepository.save(existing);
+            saved.setItems(salesOrderItemRepository.findByOrderId(id));
+            return saved;
         }
         
+        // 草稿状态的订单可以完整修改
         // 计算总金额
         BigDecimal totalAmount = items.stream()
                 .map(item -> item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity())))

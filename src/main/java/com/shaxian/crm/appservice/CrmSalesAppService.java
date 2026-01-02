@@ -45,27 +45,6 @@ public class CrmSalesAppService {
 
     @Transactional
     public CrmSalesOrder createSalesOrder(CreateCrmSalesOrderRequest request) {
-        // 获取CRM客户信息
-        CrmCustomer customer = crmCustomerRepository.findById(request.getCrmCustomerId())
-                .orElseThrow(() -> new IllegalArgumentException("CRM客户不存在"));
-
-        // 检查客户类型，如果是潜在客户且没有租户，则创建租户
-        if (customer.getType() == CrmCustomer.CustomerType.POTENTIAL) {
-            Optional<Tenant> existingTenant = tenantRepository.findByCrmCustomerId(request.getCrmCustomerId());
-            if (existingTenant.isEmpty()) {
-                // 创建租户
-                CreateTenantRequest tenantRequest = new CreateTenantRequest();
-                tenantRequest.setName(customer.getName());
-                tenantRequest.setAddress(customer.getAddress() != null ? customer.getAddress() : "");
-                
-                // 创建租户，传入crmCustomerId，不关联用户（userId传null）
-                tenantAppService.createTenant(tenantRequest, null, request.getCrmCustomerId());
-                
-                // 更新客户类型为正式客户
-                crmCustomerService.updateCustomerType(request.getCrmCustomerId(), CrmCustomer.CustomerType.OFFICIAL);
-            }
-        }
-
         // 构建订单实体
         CrmSalesOrder order = new CrmSalesOrder();
         order.setCrmCustomerId(request.getCrmCustomerId());
@@ -109,6 +88,13 @@ public class CrmSalesAppService {
 
     @Transactional
     public CrmSalesOrder updateSalesOrder(Long id, UpdateCrmSalesOrderRequest request) {
+        // 获取现有订单，用于状态比较和获取客户ID
+        CrmSalesOrder existingOrder = crmSalesService.getSalesById(id)
+                .orElseThrow(() -> new IllegalArgumentException("销售单不存在"));
+        
+        CrmSalesOrder.OrderStatus oldStatus = existingOrder.getStatus();
+        CrmSalesOrder.OrderStatus newStatus = null;
+        
         // 构建订单实体
         CrmSalesOrder order = new CrmSalesOrder();
         if (request.getCustomerName() != null) order.setCustomerName(request.getCustomerName());
@@ -118,7 +104,8 @@ public class CrmSalesAppService {
         if (request.getRemark() != null) order.setRemark(request.getRemark());
         if (request.getStatus() != null) {
             try {
-                order.setStatus(CrmSalesOrder.OrderStatus.valueOf(request.getStatus()));
+                newStatus = CrmSalesOrder.OrderStatus.valueOf(request.getStatus());
+                order.setStatus(newStatus);
             } catch (IllegalArgumentException e) {
                 throw new IllegalArgumentException("无效的状态值: " + request.getStatus());
             }
@@ -136,7 +123,35 @@ public class CrmSalesAppService {
             return item;
         }).toList();
 
-        return crmSalesService.updateSales(id, order, items);
+        // 更新订单
+        CrmSalesOrder updatedOrder = crmSalesService.updateSales(id, order, items);
+        
+        // 检查订单状态是否更新为 REVIEWED（从其他状态变为 REVIEWED）
+        if (newStatus != null && newStatus == CrmSalesOrder.OrderStatus.REVIEWED 
+                && oldStatus != CrmSalesOrder.OrderStatus.REVIEWED) {
+            // 检查该客户是否已有租户
+            Long crmCustomerId = existingOrder.getCrmCustomerId();
+            Optional<Tenant> existingTenant = tenantRepository.findByCrmCustomerId(crmCustomerId);
+            
+            if (existingTenant.isEmpty()) {
+                // 获取CRM客户信息
+                CrmCustomer customer = crmCustomerRepository.findById(crmCustomerId)
+                        .orElseThrow(() -> new IllegalArgumentException("CRM客户不存在"));
+                
+                // 创建租户
+                CreateTenantRequest tenantRequest = new CreateTenantRequest();
+                tenantRequest.setName(customer.getName());
+                tenantRequest.setAddress(customer.getAddress() != null ? customer.getAddress() : "");
+                
+                // 创建租户，传入crmCustomerId，不关联用户（userId传null）
+                tenantAppService.createTenant(tenantRequest, null, crmCustomerId);
+                
+                // 更新客户类型为正式客户
+                crmCustomerService.updateCustomerType(crmCustomerId, CrmCustomer.CustomerType.OFFICIAL);
+            }
+        }
+        
+        return updatedOrder;
     }
 
     @Transactional
