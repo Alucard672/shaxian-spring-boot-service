@@ -1,0 +1,16 @@
+-- ========== CRM用户表 ==========
+
+-- CRM用户表（CRM系统用户，全局管理，不分租户）
+CREATE TABLE crm_user_info (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  phone VARCHAR(50) NOT NULL,
+  name VARCHAR(200),
+  password VARCHAR(255) NOT NULL,
+  email VARCHAR(200),
+  status ENUM('ACTIVE', 'INACTIVE') NOT NULL DEFAULT 'ACTIVE',
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE INDEX ux_phone (phone),
+  INDEX idx_status (status)
+);
+

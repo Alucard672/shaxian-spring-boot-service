@@ -54,6 +54,15 @@ public class LocalMapUserSessionManager implements UserSessionManager {
         }
     }
 
+    @Override
+    public UserSession createSession(UserSession userSession) {
+        if (userSession == null || userSession.getSessionId() == null || userSession.getSessionId().isEmpty()) {
+            throw new IllegalArgumentException("UserSession和sessionId不能为空");
+        }
+        sessionMap.put(userSession.getSessionId(), userSession);
+        return userSession;
+    }
+
     /**
      * 获取当前会话数量（用于监控）
      *

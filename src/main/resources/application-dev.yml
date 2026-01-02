@@ -7,6 +7,10 @@ spring:
       ddl-auto: update
     # 开发环境显示 SQL 便于调试
     show-sql: true
-  datasource:
-    password: 123456
-    url: jdbc:mysql://192.168.1.110:3306/shaxian_erp?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+
+logging:
+  level:
+    # 开发环境显示更多 Hibernate 调试信息
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.hibernate.tool.schema: DEBUG

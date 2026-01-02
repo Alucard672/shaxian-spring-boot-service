@@ -116,6 +116,14 @@ public class CrmCustomerService {
         crmCustomerRepository.deleteById(id);
     }
 
+    @Transactional
+    public void updateCustomerType(Long id, CrmCustomer.CustomerType type) {
+        CrmCustomer customer = crmCustomerRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("客户不存在"));
+        customer.setType(type);
+        crmCustomerRepository.save(customer);
+    }
+
     /**
      * 为用户注册创建潜在客户记录
      * 如果客户已存在则跳过，如果不存在则创建新的潜在客户

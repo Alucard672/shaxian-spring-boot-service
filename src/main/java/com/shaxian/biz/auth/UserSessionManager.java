@@ -32,4 +32,12 @@ public interface UserSessionManager {
      * @param sessionId 会话ID
      */
     void removeSession(String sessionId);
+
+    /**
+     * 直接创建并存储用户会话（用于CRM用户等不需要User实体的场景）
+     *
+     * @param userSession 用户会话对象（需要包含sessionId）
+     * @return 用户会话对象
+     */
+    UserSession createSession(UserSession userSession);
 }

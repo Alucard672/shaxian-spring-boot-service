@@ -1,4 +1,4 @@
-package com.shaxian.biz.entity;
+package com.shaxian.crm.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -6,30 +6,27 @@ import java.time.LocalDateTime;
 
 @Data
 @Entity
-@Table(name = "tenants")
-public class Tenant {
+@Table(name = "crm_user_info", indexes = @Index(name = "idx_status", columnList = "status"))
+public class CrmUserInfo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 200)
+    @Column(nullable = false, unique = true, length = 50)
+    private String phone;
+
+    @Column(length = 200)
     private String name;
 
-    @Column(nullable = false, unique = true, length = 50)
-    private String code;
+    @Column(nullable = false, length = 255)
+    private String password;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
-    private String address;
-
-    @Column(name = "expires_at")
-    private LocalDateTime expiresAt;
-
-    @Column(name = "crm_customer_id")
-    private Long crmCustomerId;
+    @Column(length = 200)
+    private String email;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private TenantStatus status = TenantStatus.ACTIVE;
+    private UserStatus status = UserStatus.ACTIVE;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -48,7 +45,9 @@ public class Tenant {
         updatedAt = LocalDateTime.now();
     }
 
-    public enum TenantStatus {
-        ACTIVE, INACTIVE
+    public enum UserStatus {
+        ACTIVE,    // 启用
+        INACTIVE   // 停用
     }
 }
+

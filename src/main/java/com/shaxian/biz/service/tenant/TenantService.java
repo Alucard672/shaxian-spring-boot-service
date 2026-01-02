@@ -3,11 +3,19 @@ package com.shaxian.biz.service.tenant;
 import com.shaxian.biz.entity.Tenant;
 import com.shaxian.biz.repository.TenantRepository;
 import com.shaxian.biz.util.TenantCodeGenerator;
+import jakarta.persistence.criteria.Predicate;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,6 +39,32 @@ public class TenantService {
 
     public Optional<Tenant> getById(Long id) {
         return tenantRepository.findById(id);
+    }
+
+    public Page<Tenant> queryTenants(String name, String code, String status, Integer pageNo, Integer pageSize) {
+        Specification<Tenant> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            if (StringUtils.hasText(name)) {
+                predicates.add(cb.like(cb.lower(root.get("name")), "%" + name.toLowerCase() + "%"));
+            }
+            if (StringUtils.hasText(code)) {
+                predicates.add(cb.like(root.get("code"), "%" + code + "%"));
+            }
+            if (StringUtils.hasText(status)) {
+                try {
+                    Tenant.TenantStatus statusEnum = Tenant.TenantStatus.valueOf(status);
+                    predicates.add(cb.equal(root.get("status"), statusEnum));
+                } catch (IllegalArgumentException e) {
+                    // 忽略无效的枚举值
+                }
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+
+        Pageable pageable = PageRequest.of(pageNo - 1, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
+        return tenantRepository.findAll(spec, pageable);
     }
 
     @Transactional
