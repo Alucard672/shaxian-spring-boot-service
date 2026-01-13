@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/employees")
+@RequestMapping("/biz/api/employees")
 @Tag(name = "员工管理", description = "员工信息管理接口")
 public class EmployeeController {
 

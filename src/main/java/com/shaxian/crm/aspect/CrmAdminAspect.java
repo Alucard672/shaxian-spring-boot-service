@@ -1,6 +1,6 @@
 package com.shaxian.crm.aspect;
 
-import com.shaxian.biz.auth.UserSession;
+import com.shaxian.crm.auth.CrmUserSession;
 import com.shaxian.crm.repository.CrmUserInfoRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -21,7 +21,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 public class CrmAdminAspect {
 
     private static final Logger logger = LoggerFactory.getLogger(CrmAdminAspect.class);
-    private static final String CURRENT_USER_SESSION = "CURRENT_USER_SESSION";
+    private static final String CURRENT_CRM_USER_SESSION = "CURRENT_CRM_USER_SESSION";
 
     private final CrmUserInfoRepository crmUserInfoRepository;
 
@@ -43,33 +43,35 @@ public class CrmAdminAspect {
         HttpServletRequest request = attributes.getRequest();
         String requestURI = request.getRequestURI();
         
-        // 排除登录和登出接口，这些接口不需要会话验证
-        if (requestURI != null && (requestURI.equals("/api/crm/auth/login") || requestURI.equals("/api/crm/auth/logout"))) {
+        // 排除登录、登出和加载会话接口，这些接口不需要会话验证
+        if (requestURI != null && (requestURI.equals("/crm/api/auth/login") 
+                || requestURI.equals("/crm/api/auth/logout")
+                || requestURI.equals("/crm/api/auth/session"))) {
             return joinPoint.proceed();
         }
         
-        // 从请求属性中获取UserSession（由SessionAuthInterceptor设置）
-        UserSession userSession = (UserSession) request.getAttribute(CURRENT_USER_SESSION);
-        if (userSession == null) {
+        // 从请求属性中获取CrmUserSession（由CrmSessionAuthInterceptor设置）
+        CrmUserSession crmUserSession = (CrmUserSession) request.getAttribute(CURRENT_CRM_USER_SESSION);
+        if (crmUserSession == null) {
             logger.warn("CRM接口访问失败：未找到用户会话信息");
             throw new IllegalArgumentException("未找到用户会话信息");
         }
 
         // 获取用户手机号
-        String phone = userSession.getPhone();
+        String phone = crmUserSession.getPhone();
         if (phone == null || phone.isEmpty()) {
-            logger.warn("CRM接口访问失败：用户手机号为空, userId={}", userSession.getUserId());
+            logger.warn("CRM接口访问失败：用户手机号为空, userId={}", crmUserSession.getUserId());
             throw new IllegalArgumentException("用户手机号为空");
         }
 
         // 检查用户是否存在于crm_user_info表中
         if (!crmUserInfoRepository.existsByPhone(phone)) {
             logger.warn("CRM接口访问被拒绝：用户不存在于CRM用户表中, phone={}, userId={}", 
-                    phone, userSession.getUserId());
+                    phone, crmUserSession.getUserId());
             throw new IllegalArgumentException("无权限访问CRM接口，仅CRM用户可访问");
         }
 
-        logger.debug("CRM接口权限校验通过, phone={}, userId={}", phone, userSession.getUserId());
+        logger.debug("CRM接口权限校验通过, phone={}, userId={}", phone, crmUserSession.getUserId());
         
         // 权限校验通过，继续执行方法
         return joinPoint.proceed();

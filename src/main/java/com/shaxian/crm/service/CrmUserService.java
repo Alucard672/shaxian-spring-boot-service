@@ -1,7 +1,10 @@
 package com.shaxian.crm.service;
 
+import com.shaxian.crm.entity.CrmRole;
 import com.shaxian.crm.entity.CrmUserInfo;
+import com.shaxian.crm.repository.CrmRoleRepository;
 import com.shaxian.crm.repository.CrmUserInfoRepository;
+import com.shaxian.crm.util.PasswordUtil;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -20,9 +23,11 @@ import java.util.Optional;
 public class CrmUserService {
 
     private final CrmUserInfoRepository crmUserInfoRepository;
+    private final CrmRoleRepository crmRoleRepository;
 
-    public CrmUserService(CrmUserInfoRepository crmUserInfoRepository) {
+    public CrmUserService(CrmUserInfoRepository crmUserInfoRepository, CrmRoleRepository crmRoleRepository) {
         this.crmUserInfoRepository = crmUserInfoRepository;
+        this.crmRoleRepository = crmRoleRepository;
     }
 
     /**
@@ -66,23 +71,28 @@ public class CrmUserService {
 
     /**
      * 创建用户
-     * 密码自动设置为手机号后六位
+     * 密码自动设置为手机号后六位，并进行双重SHA256加密后存储
      */
     @Transactional
-    public CrmUserInfo create(String phone, String name, String email) {
+    public CrmUserInfo create(String phone, String name, String email, List<Long> roleIds) {
         // 检查手机号是否已存在
         if (crmUserInfoRepository.existsByPhone(phone)) {
             throw new IllegalArgumentException("手机号已存在");
         }
 
+        // 校验角色ID列表
+        validateRoleIds(roleIds);
+
         CrmUserInfo user = new CrmUserInfo();
         user.setPhone(phone);
         user.setName(name);
         user.setEmail(email);
+        user.setRoleIdsList(roleIds);
         
-        // 密码设置为手机号后六位
-        String password = phone.length() >= 6 ? phone.substring(phone.length() - 6) : phone;
-        user.setPassword(password);
+        // 密码设置为手机号后六位，并进行双重SHA256加密
+        String plainPassword = phone.length() >= 6 ? phone.substring(phone.length() - 6) : phone;
+        String encryptedPassword = PasswordUtil.hashPasswordTwice(plainPassword);
+        user.setPassword(encryptedPassword);
         
         // 默认状态为启用
         user.setStatus(CrmUserInfo.UserStatus.ACTIVE);
@@ -94,7 +104,7 @@ public class CrmUserService {
      * 更新用户信息
      */
     @Transactional
-    public CrmUserInfo update(Long id, String phone, String name, String email) {
+    public CrmUserInfo update(Long id, String phone, String name, String email, List<Long> roleIds) {
         CrmUserInfo existing = crmUserInfoRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("用户不存在"));
 
@@ -102,6 +112,12 @@ public class CrmUserService {
         if (StringUtils.hasText(phone) && !existing.getPhone().equals(phone) &&
                 crmUserInfoRepository.existsByPhoneAndIdNot(phone, id)) {
             throw new IllegalArgumentException("手机号已存在");
+        }
+
+        // 如果提供了角色ID列表，进行校验并更新
+        if (roleIds != null) {
+            validateRoleIds(roleIds);
+            existing.setRoleIdsList(roleIds);
         }
 
         // 只更新非空字段
@@ -116,6 +132,24 @@ public class CrmUserService {
         }
 
         return crmUserInfoRepository.save(existing);
+    }
+
+    /**
+     * 校验角色ID列表
+     * 1. 不能为空
+     * 2. 至少包含一个角色
+     * 3. 所有角色ID必须存在且为启用状态
+     */
+    private void validateRoleIds(List<Long> roleIds) {
+        if (roleIds == null || roleIds.isEmpty()) {
+            throw new IllegalArgumentException("用户必须至少有一个角色");
+        }
+
+        // 检查所有角色是否存在且为启用状态
+        List<CrmRole> roles = crmRoleRepository.findByIdInAndStatus(roleIds, CrmRole.RoleStatus.ACTIVE);
+        if (roles.size() != roleIds.size()) {
+            throw new IllegalArgumentException("部分角色不存在或已停用");
+        }
     }
 
     /**

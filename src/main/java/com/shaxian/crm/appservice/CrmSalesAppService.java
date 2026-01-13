@@ -5,6 +5,7 @@ import com.shaxian.biz.appservice.tenant.TenantAppService;
 import com.shaxian.biz.dto.tenant.request.CreateTenantRequest;
 import com.shaxian.biz.entity.Tenant;
 import com.shaxian.biz.repository.TenantRepository;
+import com.shaxian.biz.service.tenant.TenantService;
 import com.shaxian.crm.dto.request.CreateCrmSalesOrderRequest;
 import com.shaxian.crm.dto.request.CrmSalesOrderQueryRequest;
 import com.shaxian.crm.dto.request.UpdateCrmSalesOrderRequest;
@@ -14,10 +15,12 @@ import com.shaxian.crm.entity.CrmSalesOrderItem;
 import com.shaxian.crm.repository.CrmCustomerRepository;
 import com.shaxian.crm.service.CrmCustomerService;
 import com.shaxian.crm.service.CrmSalesService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,18 +32,24 @@ public class CrmSalesAppService {
     private final CrmCustomerRepository crmCustomerRepository;
     private final TenantRepository tenantRepository;
     private final TenantAppService tenantAppService;
+    private final TenantService tenantService;
+
+    @Value("${tenant.default-expiry-days:7}")
+    private int defaultExpiryDays;
 
     public CrmSalesAppService(
             CrmSalesService crmSalesService,
             CrmCustomerService crmCustomerService,
             CrmCustomerRepository crmCustomerRepository,
             TenantRepository tenantRepository,
-            TenantAppService tenantAppService) {
+            TenantAppService tenantAppService,
+            TenantService tenantService) {
         this.crmSalesService = crmSalesService;
         this.crmCustomerService = crmCustomerService;
         this.crmCustomerRepository = crmCustomerRepository;
         this.tenantRepository = tenantRepository;
         this.tenantAppService = tenantAppService;
+        this.tenantService = tenantService;
     }
 
     @Transactional
@@ -95,6 +104,19 @@ public class CrmSalesAppService {
         CrmSalesOrder.OrderStatus oldStatus = existingOrder.getStatus();
         CrmSalesOrder.OrderStatus newStatus = null;
         
+        // 如果订单不是草稿状态，不允许修改订单项
+        if (existingOrder.getStatus() != CrmSalesOrder.OrderStatus.DRAFT) {
+            // 非草稿状态下，只允许修改备注、操作员等非关键字段
+            // 不允许修改客户名称、销售日期、订单项等
+            if (request.getCustomerName() != null || request.getSalesDate() != null) {
+                throw new IllegalArgumentException("付款后不允许修改客户名称和销售日期");
+            }
+            // 如果传入了订单项，检查是否与现有订单项一致（实际上不应该传入）
+            if (request.getItems() != null && !request.getItems().isEmpty()) {
+                throw new IllegalArgumentException("付款后不允许修改订单项");
+            }
+        }
+        
         // 构建订单实体
         CrmSalesOrder order = new CrmSalesOrder();
         if (request.getCustomerName() != null) order.setCustomerName(request.getCustomerName());
@@ -111,17 +133,24 @@ public class CrmSalesAppService {
             }
         }
 
-        // 构建订单项
-        List<CrmSalesOrderItem> items = request.getItems().stream().map(itemRequest -> {
-            CrmSalesOrderItem item = new CrmSalesOrderItem();
-            item.setProductId(itemRequest.getProductId());
-            item.setProductName(itemRequest.getProductName());
-            item.setProductCode(itemRequest.getProductCode());
-            item.setUnitPrice(itemRequest.getUnitPrice());
-            item.setQuantity(itemRequest.getQuantity());
-            item.setRemark(itemRequest.getRemark());
-            return item;
-        }).toList();
+        // 构建订单项（非草稿状态下，使用现有订单项）
+        List<CrmSalesOrderItem> items;
+        if (existingOrder.getStatus() != CrmSalesOrder.OrderStatus.DRAFT) {
+            // 非草稿状态，使用现有订单项
+            items = existingOrder.getItems() != null ? existingOrder.getItems() : List.of();
+        } else {
+            // 草稿状态，使用请求中的订单项
+            items = request.getItems().stream().map(itemRequest -> {
+                CrmSalesOrderItem item = new CrmSalesOrderItem();
+                item.setProductId(itemRequest.getProductId());
+                item.setProductName(itemRequest.getProductName());
+                item.setProductCode(itemRequest.getProductCode());
+                item.setUnitPrice(itemRequest.getUnitPrice());
+                item.setQuantity(itemRequest.getQuantity());
+                item.setRemark(itemRequest.getRemark());
+                return item;
+            }).toList();
+        }
 
         // 更新订单
         CrmSalesOrder updatedOrder = crmSalesService.updateSales(id, order, items);
@@ -157,6 +186,63 @@ public class CrmSalesAppService {
     @Transactional
     public void deleteSalesOrder(Long id) {
         crmSalesService.deleteSales(id);
+    }
+
+    @Transactional
+    public CrmSalesOrder paySalesOrder(Long id) {
+        return crmSalesService.paySales(id);
+    }
+
+    @Transactional
+    public CrmSalesOrder reviewSalesOrder(Long id) {
+        // 获取订单信息
+        CrmSalesOrder order = crmSalesService.getSalesById(id)
+                .orElseThrow(() -> new IllegalArgumentException("销售单不存在"));
+        
+        // 复核订单（更新状态为REVIEWED）
+        CrmSalesOrder reviewedOrder = crmSalesService.reviewSales(id);
+        
+        // 处理租户逻辑
+        Long crmCustomerId = order.getCrmCustomerId();
+        Optional<Tenant> existingTenant = tenantRepository.findByCrmCustomerId(crmCustomerId);
+        
+        if (existingTenant.isEmpty()) {
+            // 如果没有租户：创建租户并更新客户类型为OFFICIAL
+            CrmCustomer customer = crmCustomerRepository.findById(crmCustomerId)
+                    .orElseThrow(() -> new IllegalArgumentException("CRM客户不存在"));
+            
+            CreateTenantRequest tenantRequest = new CreateTenantRequest();
+            tenantRequest.setName(customer.getName());
+            tenantRequest.setAddress(customer.getAddress() != null ? customer.getAddress() : "");
+            
+            // 创建租户，传入crmCustomerId，不关联用户（userId传null）
+            tenantAppService.createTenant(tenantRequest, null, crmCustomerId);
+            
+            // 更新客户类型为正式客户
+            crmCustomerService.updateCustomerType(crmCustomerId, CrmCustomer.CustomerType.OFFICIAL);
+        } else {
+            // 如果已有租户：更新租户信息（延长有效期，确保状态为ACTIVE）
+            Tenant tenant = existingTenant.get();
+            
+            // 延长有效期（在当前有效期基础上再延长，如果已过期则从当前时间开始计算）
+            LocalDateTime newExpiresAt;
+            if (tenant.getExpiresAt() != null && tenant.getExpiresAt().isAfter(LocalDateTime.now())) {
+                // 如果还未过期，在当前有效期基础上延长
+                newExpiresAt = tenant.getExpiresAt().plusDays(defaultExpiryDays);
+            } else {
+                // 如果已过期，从当前时间开始计算
+                newExpiresAt = LocalDateTime.now().plusDays(defaultExpiryDays);
+            }
+            tenant.setExpiresAt(newExpiresAt);
+            
+            // 确保状态为ACTIVE
+            tenant.setStatus(Tenant.TenantStatus.ACTIVE);
+            
+            // 更新租户
+            tenantService.update(tenant.getId(), tenant);
+        }
+        
+        return reviewedOrder;
     }
 }
 

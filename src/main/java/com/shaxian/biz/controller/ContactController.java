@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/contacts")
+@RequestMapping("/biz/api/contacts")
 @Tag(name = "联系人管理", description = "客户、供应商管理接口")
 public class ContactController {
 

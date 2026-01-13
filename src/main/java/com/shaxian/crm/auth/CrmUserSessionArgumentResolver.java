@@ -1,4 +1,4 @@
-package com.shaxian.biz.auth;
+package com.shaxian.crm.auth;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.core.MethodParameter;
@@ -9,18 +9,18 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
 /**
- * UserSession 参数解析器
- * 支持在 Controller 方法参数中直接注入当前 UserSession
+ * CrmUserSession 参数解析器
+ * 支持在 Controller 方法参数中直接注入当前 CrmUserSession
  */
 @Component
-public class UserSessionArgumentResolver implements HandlerMethodArgumentResolver {
+public class CrmUserSessionArgumentResolver implements HandlerMethodArgumentResolver {
 
-    private static final String CURRENT_USER_SESSION = "CURRENT_USER_SESSION";
+    private static final String CURRENT_CRM_USER_SESSION = "CURRENT_CRM_USER_SESSION";
 
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
-        // 判断参数类型是否为 UserSession 或其子类
-        return UserSession.class.isAssignableFrom(parameter.getParameterType());
+        // 判断参数类型是否为 CrmUserSession
+        return CrmUserSession.class.isAssignableFrom(parameter.getParameterType());
     }
 
     @Override
@@ -32,7 +32,7 @@ public class UserSessionArgumentResolver implements HandlerMethodArgumentResolve
         if (request == null) {
             return null;
         }
-        // 从请求属性中获取 UserSession（由拦截器设置）
-        return request.getAttribute(CURRENT_USER_SESSION);
+        // 从请求属性中获取 CrmUserSession（由拦截器设置）
+        return request.getAttribute(CURRENT_CRM_USER_SESSION);
     }
 }

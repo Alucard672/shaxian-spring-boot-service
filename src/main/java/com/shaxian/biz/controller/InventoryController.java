@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/inventory")
+@RequestMapping("/biz/api/inventory")
 @Tag(name = "库存管理", description = "库存调整单、盘点单管理接口")
 public class InventoryController {
 

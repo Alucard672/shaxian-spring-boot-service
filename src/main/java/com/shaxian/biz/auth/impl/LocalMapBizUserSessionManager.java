@@ -1,7 +1,7 @@
 package com.shaxian.biz.auth.impl;
 
+import com.shaxian.biz.auth.BizUserSessionManager;
 import com.shaxian.biz.auth.UserSession;
-import com.shaxian.biz.auth.UserSessionManager;
 import com.shaxian.biz.entity.Tenant;
 import com.shaxian.biz.entity.User;
 import org.springframework.stereotype.Service;
@@ -10,10 +10,10 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * 基于本地内存 Map 的用户会话管理实现
+ * 基于本地内存 Map 的BIZ用户会话管理实现
  */
 @Service
-public class LocalMapUserSessionManager implements UserSessionManager {
+public class LocalMapBizUserSessionManager implements BizUserSessionManager {
 
     /**
      * 会话存储：key 为 sessionId，value 为 UserSession

@@ -2,7 +2,7 @@ package com.shaxian.crm.controller;
 
 import com.shaxian.biz.api.ApiResponse;
 import com.shaxian.biz.api.PageResult;
-import com.shaxian.biz.auth.UserSession;
+import com.shaxian.crm.auth.CrmUserSession;
 import com.shaxian.crm.appservice.CrmUserAppService;
 import com.shaxian.crm.dto.request.CreateCrmUserRequest;
 import com.shaxian.crm.dto.request.CrmUserQueryRequest;
@@ -18,7 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/crm/users")
+@RequestMapping("/crm/api/users")
 @Tag(name = "CRM用户管理", description = "CRM系统用户管理接口")
 public class CrmUserController {
 
@@ -37,7 +37,7 @@ public class CrmUserController {
             @Parameter(description = "页码，从1开始", required = true) @RequestParam Integer pageNo,
             @Parameter(description = "每页条数", required = true) @RequestParam Integer pageSize,
             @RequestBody(required = false) CrmUserQueryRequest request,
-            UserSession session) {
+            CrmUserSession session) {
         if (request == null) {
             request = new CrmUserQueryRequest();
         }
@@ -53,7 +53,7 @@ public class CrmUserController {
     })
     public ResponseEntity<ApiResponse<CrmUserInfo>> getUser(
             @Parameter(description = "用户ID", required = true) @PathVariable Long id,
-            UserSession session) {
+            CrmUserSession session) {
         return crmUserAppService.findUser(id)
                 .map(user -> ResponseEntity.ok(ApiResponse.ok(user)))
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -67,7 +67,7 @@ public class CrmUserController {
     })
     public ResponseEntity<ApiResponse<CrmUserInfo>> createUser(
             @Valid @RequestBody CreateCrmUserRequest request,
-            UserSession session) {
+            CrmUserSession session) {
         CrmUserInfo created = crmUserAppService.createUser(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(created));
     }
@@ -80,7 +80,7 @@ public class CrmUserController {
     public ResponseEntity<ApiResponse<CrmUserInfo>> updateUser(
             @Parameter(description = "用户ID", required = true) @PathVariable Long id,
             @Valid @RequestBody UpdateCrmUserRequest request,
-            UserSession session) {
+            CrmUserSession session) {
         CrmUserInfo updated = crmUserAppService.updateUser(id, request);
         return ResponseEntity.ok(ApiResponse.ok(updated));
     }
@@ -93,7 +93,7 @@ public class CrmUserController {
     public ResponseEntity<ApiResponse<Void>> updateUserStatus(
             @Parameter(description = "用户ID", required = true) @PathVariable Long id,
             @Parameter(description = "状态", required = true) @RequestParam String status,
-            UserSession session) {
+            CrmUserSession session) {
         try {
             CrmUserInfo.UserStatus statusEnum = CrmUserInfo.UserStatus.valueOf(status.toUpperCase());
             crmUserAppService.updateUserStatus(id, statusEnum);

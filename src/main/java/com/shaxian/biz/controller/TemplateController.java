@@ -17,7 +17,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/templates")
+@RequestMapping("/biz/api/templates")
 @Tag(name = "模板管理", description = "打印模板管理接口")
 public class TemplateController {
     private final PrintTemplateRepository printTemplateRepository;

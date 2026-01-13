@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/accounts")
+@RequestMapping("/biz/api/accounts")
 @Tag(name = "账户管理", description = "应收账款、应付账款管理接口")
 public class AccountController {
 

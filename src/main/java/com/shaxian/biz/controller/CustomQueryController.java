@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/queries")
+@RequestMapping("/biz/api/queries")
 @Tag(name = "自定义查询", description = "自定义SQL查询管理接口")
 public class CustomQueryController {
 

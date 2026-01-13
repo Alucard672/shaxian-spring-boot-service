@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/biz/api/auth")
 @Tag(name = "认证授权", description = "用户登录、登出接口")
 public class AuthController {
 

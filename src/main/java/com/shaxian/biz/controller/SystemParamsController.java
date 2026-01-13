@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/system-params")
+@RequestMapping("/biz/api/system-params")
 @Tag(name = "系统参数", description = "系统参数管理接口")
 public class SystemParamsController {
 

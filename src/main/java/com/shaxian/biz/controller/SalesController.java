@@ -17,7 +17,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/sales")
+@RequestMapping("/biz/api/sales")
 @Tag(name = "销售管理", description = "销售订单管理接口")
 public class SalesController {
 

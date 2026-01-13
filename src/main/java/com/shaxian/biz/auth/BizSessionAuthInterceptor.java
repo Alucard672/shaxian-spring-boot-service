@@ -11,22 +11,22 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 /**
- * 会话认证拦截器
+ * BIZ会话认证拦截器
  * 统一校验 sessionId，并将 UserSession 存入请求属性
  */
 @Component
-public class SessionAuthInterceptor implements HandlerInterceptor {
+public class BizSessionAuthInterceptor implements HandlerInterceptor {
 
-    private static final Logger logger = LoggerFactory.getLogger(SessionAuthInterceptor.class);
+    private static final Logger logger = LoggerFactory.getLogger(BizSessionAuthInterceptor.class);
     private static final String SESSION_ID_HEADER = "X-Session-Id";
     private static final String SESSION_ID_PARAM = "sessionId";
     private static final String CURRENT_USER_SESSION = "CURRENT_USER_SESSION";
 
-    private final UserSessionManager userSessionManager;
+    private final BizUserSessionManager bizUserSessionManager;
     private final ObjectMapper objectMapper;
 
-    public SessionAuthInterceptor(UserSessionManager userSessionManager, ObjectMapper objectMapper) {
-        this.userSessionManager = userSessionManager;
+    public BizSessionAuthInterceptor(BizUserSessionManager bizUserSessionManager, ObjectMapper objectMapper) {
+        this.bizUserSessionManager = bizUserSessionManager;
         this.objectMapper = objectMapper;
     }
 
@@ -42,7 +42,7 @@ public class SessionAuthInterceptor implements HandlerInterceptor {
         }
 
         // 从会话管理器获取 UserSession
-        UserSession userSession = userSessionManager.getSession(sessionId);
+        UserSession userSession = bizUserSessionManager.getSession(sessionId);
         if (userSession == null) {
             logger.warn("无效的 sessionId: {}", sessionId);
             writeErrorResponse(response, "无效的 sessionId");

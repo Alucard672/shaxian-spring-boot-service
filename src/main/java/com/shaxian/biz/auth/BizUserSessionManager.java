@@ -4,10 +4,10 @@ import com.shaxian.biz.entity.Tenant;
 import com.shaxian.biz.entity.User;
 
 /**
- * 用户会话管理接口
+ * BIZ用户会话管理接口
  * 为后续支持 Redis 存储预留扩展点
  */
-public interface UserSessionManager {
+public interface BizUserSessionManager {
 
     /**
      * 创建用户会话
@@ -34,7 +34,7 @@ public interface UserSessionManager {
     void removeSession(String sessionId);
 
     /**
-     * 直接创建并存储用户会话（用于CRM用户等不需要User实体的场景）
+     * 直接创建并存储用户会话
      *
      * @param userSession 用户会话对象（需要包含sessionId）
      * @return 用户会话对象

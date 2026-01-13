@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/products")
+@RequestMapping("/biz/api/products")
 @Tag(name = "商品管理", description = "商品、色号、缸号管理接口")
 public class ProductController {
 

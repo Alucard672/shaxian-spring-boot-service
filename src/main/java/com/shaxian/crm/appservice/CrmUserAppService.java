@@ -46,10 +46,15 @@ public class CrmUserAppService {
      * 创建用户
      */
     public CrmUserInfo createUser(CreateCrmUserRequest request) {
+        // 校验角色ID列表
+        if (request.getRoleIds() == null || request.getRoleIds().isEmpty()) {
+            throw new IllegalArgumentException("用户必须至少有一个角色");
+        }
         return crmUserService.create(
                 request.getPhone(),
                 request.getName(),
-                request.getEmail()
+                request.getEmail(),
+                request.getRoleIds()
         );
     }
 
@@ -57,11 +62,16 @@ public class CrmUserAppService {
      * 更新用户
      */
     public CrmUserInfo updateUser(Long id, UpdateCrmUserRequest request) {
+        // 如果提供了角色ID列表，需要校验
+        if (request.getRoleIds() != null && request.getRoleIds().isEmpty()) {
+            throw new IllegalArgumentException("用户必须至少有一个角色");
+        }
         return crmUserService.update(
                 id,
                 request.getPhone(),
                 request.getName(),
-                request.getEmail()
+                request.getEmail(),
+                request.getRoleIds()
         );
     }
 

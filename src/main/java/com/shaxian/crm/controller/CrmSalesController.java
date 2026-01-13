@@ -2,7 +2,7 @@ package com.shaxian.crm.controller;
 
 import com.shaxian.biz.api.ApiResponse;
 import com.shaxian.biz.api.PageResult;
-import com.shaxian.biz.auth.UserSession;
+import com.shaxian.crm.auth.CrmUserSession;
 import com.shaxian.crm.appservice.CrmSalesAppService;
 import com.shaxian.crm.dto.request.CreateCrmSalesOrderRequest;
 import com.shaxian.crm.dto.request.CrmSalesOrderQueryRequest;
@@ -18,7 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/crm/sales")
+@RequestMapping("/crm/api/sales")
 @Tag(name = "CRM销售管理", description = "软件销售订单管理接口")
 public class CrmSalesController {
 
@@ -37,7 +37,7 @@ public class CrmSalesController {
             @Parameter(description = "页码，从1开始", required = true) @RequestParam Integer pageNo,
             @Parameter(description = "每页条数", required = true) @RequestParam Integer pageSize,
             @RequestBody(required = false) CrmSalesOrderQueryRequest request,
-            UserSession session) {
+            CrmUserSession session) {
         if (request == null) {
             request = new CrmSalesOrderQueryRequest();
         }
@@ -53,7 +53,7 @@ public class CrmSalesController {
     })
     public ResponseEntity<ApiResponse<CrmSalesOrder>> getSalesOrder(
             @Parameter(description = "订单ID", required = true) @PathVariable Long id,
-            UserSession session) {
+            CrmUserSession session) {
         return crmSalesAppService.getSalesOrder(id)
                 .map(order -> ResponseEntity.ok(ApiResponse.ok(order)))
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -67,7 +67,7 @@ public class CrmSalesController {
     })
     public ResponseEntity<ApiResponse<CrmSalesOrder>> createSalesOrder(
             @Valid @RequestBody CreateCrmSalesOrderRequest request,
-            UserSession session) {
+            CrmUserSession session) {
         CrmSalesOrder created = crmSalesAppService.createSalesOrder(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(created));
     }
@@ -80,7 +80,7 @@ public class CrmSalesController {
     public ResponseEntity<ApiResponse<CrmSalesOrder>> updateSalesOrder(
             @Parameter(description = "订单ID", required = true) @PathVariable Long id,
             @Valid @RequestBody UpdateCrmSalesOrderRequest request,
-            UserSession session) {
+            CrmUserSession session) {
         CrmSalesOrder updated = crmSalesAppService.updateSalesOrder(id, request);
         return ResponseEntity.ok(ApiResponse.ok(updated));
     }
@@ -92,9 +92,45 @@ public class CrmSalesController {
     })
     public ResponseEntity<ApiResponse<Void>> deleteSalesOrder(
             @Parameter(description = "订单ID", required = true) @PathVariable Long id,
-            UserSession session) {
+            CrmUserSession session) {
         crmSalesAppService.deleteSalesOrder(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(ApiResponse.ok(null));
+    }
+
+    @PostMapping("/{id}/payment")
+    @Operation(summary = "付款", description = "对草稿状态的销售订单进行付款，付款金额等于订单总金额")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "付款成功"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "付款失败，订单状态不正确或总金额为0")
+    })
+    public ResponseEntity<ApiResponse<CrmSalesOrder>> paySalesOrder(
+            @Parameter(description = "订单ID", required = true) @PathVariable Long id,
+            CrmUserSession session) {
+        try {
+            CrmSalesOrder paid = crmSalesAppService.paySalesOrder(id);
+            return ResponseEntity.ok(ApiResponse.ok(paid));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.fail(e.getMessage()));
+        }
+    }
+
+    @PostMapping("/{id}/review")
+    @Operation(summary = "复核", description = "对已付款状态的销售订单进行复核，复核后订单生效。如果是首次销售，将自动创建租户；如果已有租户，将延长租户有效期")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "复核成功"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "复核失败，订单状态不正确或未付款")
+    })
+    public ResponseEntity<ApiResponse<CrmSalesOrder>> reviewSalesOrder(
+            @Parameter(description = "订单ID", required = true) @PathVariable Long id,
+            CrmUserSession session) {
+        try {
+            CrmSalesOrder reviewed = crmSalesAppService.reviewSalesOrder(id);
+            return ResponseEntity.ok(ApiResponse.ok(reviewed));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.fail(e.getMessage()));
+        }
     }
 }
 

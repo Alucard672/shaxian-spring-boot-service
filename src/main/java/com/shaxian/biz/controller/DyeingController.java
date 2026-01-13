@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/dyeing")
+@RequestMapping("/biz/api/dyeing")
 @Tag(name = "染色管理", description = "染色加工单管理接口")
 public class DyeingController {
     private final DyeingOrderRepository dyeingOrderRepository;

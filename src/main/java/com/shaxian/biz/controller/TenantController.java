@@ -18,7 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/tenants")
+@RequestMapping("/biz/api/tenants")
 @Tag(name = "租户管理", description = "租户信息管理接口")
 public class TenantController {
 

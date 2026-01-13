@@ -1,7 +1,7 @@
 package com.shaxian.biz.appservice.auth;
 
+import com.shaxian.biz.auth.BizUserSessionManager;
 import com.shaxian.biz.auth.UserSession;
-import com.shaxian.biz.auth.UserSessionManager;
 import com.shaxian.biz.entity.Tenant;
 import com.shaxian.biz.entity.User;
 import com.shaxian.biz.entity.UserTenant;
@@ -23,7 +23,7 @@ import java.util.Map;
 public class AuthAppService {
 
     private final AuthService authService;
-    private final UserSessionManager userSessionManager;
+    private final BizUserSessionManager bizUserSessionManager;
     private final UserService userService;
     private final UserTenantRepository userTenantRepository;
     private final TenantRepository tenantRepository;
@@ -31,12 +31,12 @@ public class AuthAppService {
     private final CrmCustomerService crmCustomerService;
     private final UserTenantService userTenantService;
 
-    public AuthAppService(AuthService authService, UserSessionManager userSessionManager,
+    public AuthAppService(AuthService authService, BizUserSessionManager bizUserSessionManager,
                           UserService userService, UserTenantRepository userTenantRepository,
                           TenantRepository tenantRepository, UserRepository userRepository,
                           CrmCustomerService crmCustomerService, UserTenantService userTenantService) {
         this.authService = authService;
-        this.userSessionManager = userSessionManager;
+        this.bizUserSessionManager = bizUserSessionManager;
         this.userService = userService;
         this.userTenantRepository = userTenantRepository;
         this.tenantRepository = tenantRepository;
@@ -58,7 +58,7 @@ public class AuthAppService {
         Tenant tenant = loginResult.getTenant();
 
         // 创建用户会话
-        UserSession userSession = userSessionManager.createSession(user, tenant);
+        UserSession userSession = bizUserSessionManager.createSession(user, tenant);
 
         // 返回包含 sessionId 的用户信息
         return userSession;
@@ -75,7 +75,7 @@ public class AuthAppService {
             throw new IllegalArgumentException("tenantId不能为空");
         }
 
-        UserSession userSession = userSessionManager.getSession(sessionId);
+        UserSession userSession = bizUserSessionManager.getSession(sessionId);
         if (userSession == null) {
             throw new IllegalArgumentException("无效的sessionId");
         }
@@ -115,7 +115,7 @@ public class AuthAppService {
             throw new IllegalArgumentException("sessionId不能为空");
         }
 
-        UserSession userSession = userSessionManager.getSession(sessionId);
+        UserSession userSession = bizUserSessionManager.getSession(sessionId);
         if (userSession == null) {
             throw new IllegalArgumentException("无效的sessionId");
         }
@@ -128,7 +128,7 @@ public class AuthAppService {
      */
     public void logout(String sessionId) {
         if (sessionId != null && !sessionId.isEmpty()) {
-            userSessionManager.removeSession(sessionId);
+            bizUserSessionManager.removeSession(sessionId);
         }
     }
 
@@ -169,7 +169,7 @@ public class AuthAppService {
             userTenantService.associateUserWithTenant(user.getId(), tenant.getId(), UserTenant.RelationshipType.MEMBER, true); // 注册时关联的租户设为默认租户
 
             // 创建用户会话
-            UserSession userSession = userSessionManager.createSession(user, tenant);
+            UserSession userSession = bizUserSessionManager.createSession(user, tenant);
 
             // 返回包含 sessionId 的用户信息
             Map<String, Object> userInfo = new HashMap<>();

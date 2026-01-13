@@ -176,6 +176,50 @@ public class CrmSalesService {
         salesOrderRepository.deleteById(id);
     }
 
+    @Transactional
+    public CrmSalesOrder paySales(Long orderId) {
+        CrmSalesOrder order = salesOrderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("销售单不存在"));
+        
+        // 验证订单状态必须是DRAFT
+        if (order.getStatus() != CrmSalesOrder.OrderStatus.DRAFT) {
+            throw new IllegalArgumentException("只能对草稿状态的订单进行付款");
+        }
+        
+        // 验证订单总金额>0
+        if (order.getTotalAmount() == null || order.getTotalAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("订单总金额必须大于0");
+        }
+        
+        // 设置已付金额=总金额，未付金额=0
+        order.setPaidAmount(order.getTotalAmount());
+        order.setUnpaidAmount(BigDecimal.ZERO);
+        order.setStatus(CrmSalesOrder.OrderStatus.PAID);
+        
+        return salesOrderRepository.save(order);
+    }
+
+    @Transactional
+    public CrmSalesOrder reviewSales(Long orderId) {
+        CrmSalesOrder order = salesOrderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("销售单不存在"));
+        
+        // 验证订单状态必须是PAID
+        if (order.getStatus() != CrmSalesOrder.OrderStatus.PAID) {
+            throw new IllegalArgumentException("只能对已付款状态的订单进行复核");
+        }
+        
+        // 验证已付金额>0
+        if (order.getPaidAmount() == null || order.getPaidAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("订单必须已付款才能复核");
+        }
+        
+        // 更新状态为REVIEWED
+        order.setStatus(CrmSalesOrder.OrderStatus.REVIEWED);
+        
+        return salesOrderRepository.save(order);
+    }
+
     /**
      * 生成软件销售订单号
      * 格式：RJS + yyyyMMdd + 3位随机数

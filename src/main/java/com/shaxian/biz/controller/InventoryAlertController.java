@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/inventory-alert")
+@RequestMapping("/biz/api/inventory-alert")
 @Tag(name = "库存预警", description = "库存预警设置管理接口")
 public class InventoryAlertController {
 

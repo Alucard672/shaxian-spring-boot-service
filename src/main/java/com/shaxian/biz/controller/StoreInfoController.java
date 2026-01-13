@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/store")
+@RequestMapping("/biz/api/store")
 @Tag(name = "门店信息", description = "门店信息管理接口")
 public class StoreInfoController {
 

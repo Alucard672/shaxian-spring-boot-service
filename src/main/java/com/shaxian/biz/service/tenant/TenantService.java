@@ -108,4 +108,20 @@ public class TenantService {
         }
         tenantRepository.deleteById(id);
     }
+
+    @Transactional
+    public Tenant activate(Long id) {
+        Tenant tenant = tenantRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("租户不存在"));
+        tenant.setStatus(Tenant.TenantStatus.ACTIVE);
+        return tenantRepository.save(tenant);
+    }
+
+    @Transactional
+    public Tenant deactivate(Long id) {
+        Tenant tenant = tenantRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("租户不存在"));
+        tenant.setStatus(Tenant.TenantStatus.INACTIVE);
+        return tenantRepository.save(tenant);
+    }
 }

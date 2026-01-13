@@ -1,8 +1,12 @@
 package com.shaxian.crm.entity;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @Entity
@@ -24,6 +28,9 @@ public class CrmUserInfo {
     @Column(length = 200)
     private String email;
 
+    @Column(name = "role_ids", nullable = false, columnDefinition = "TEXT")
+    private String roleIds; // JSON数组格式，如 "[1,2,3]"
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private UserStatus status = UserStatus.ACTIVE;
@@ -33,6 +40,39 @@ public class CrmUserInfo {
 
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+
+    /**
+     * 获取角色ID列表
+     */
+    @Transient
+    public List<Long> getRoleIdsList() {
+        if (roleIds == null || roleIds.trim().isEmpty()) {
+            return new ArrayList<>();
+        }
+        try {
+            return objectMapper.readValue(roleIds, new TypeReference<List<Long>>() {});
+        } catch (Exception e) {
+            return new ArrayList<>();
+        }
+    }
+
+    /**
+     * 设置角色ID列表
+     */
+    @Transient
+    public void setRoleIdsList(List<Long> roleIdsList) {
+        if (roleIdsList == null || roleIdsList.isEmpty()) {
+            this.roleIds = "[]";
+        } else {
+            try {
+                this.roleIds = objectMapper.writeValueAsString(roleIdsList);
+            } catch (Exception e) {
+                this.roleIds = "[]";
+            }
+        }
+    }
 
     @PrePersist
     protected void onCreate() {

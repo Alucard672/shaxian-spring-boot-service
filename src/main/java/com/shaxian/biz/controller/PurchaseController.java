@@ -17,7 +17,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/purchases")
+@RequestMapping("/biz/api/purchases")
 @Tag(name = "采购管理", description = "采购订单管理接口")
 public class PurchaseController {
 
