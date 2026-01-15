@@ -17,7 +17,9 @@ import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class CrmUserService {
@@ -59,14 +61,23 @@ public class CrmUserService {
         };
 
         Pageable pageable = PageRequest.of(pageNo - 1, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
-        return crmUserInfoRepository.findAll(spec, pageable);
+        Page<CrmUserInfo> page = crmUserInfoRepository.findAll(spec, pageable);
+        
+        // 填充角色信息
+        fillRoleInfo(page.getContent());
+        
+        return page;
     }
 
     /**
      * 根据ID获取用户
      */
     public Optional<CrmUserInfo> getById(Long id) {
-        return crmUserInfoRepository.findById(id);
+        Optional<CrmUserInfo> userOpt = crmUserInfoRepository.findById(id);
+        if (userOpt.isPresent()) {
+            fillRoleInfo(List.of(userOpt.get()));
+        }
+        return userOpt;
     }
 
     /**
@@ -97,7 +108,12 @@ public class CrmUserService {
         // 默认状态为启用
         user.setStatus(CrmUserInfo.UserStatus.ACTIVE);
         
-        return crmUserInfoRepository.save(user);
+        CrmUserInfo saved = crmUserInfoRepository.save(user);
+        
+        // 填充角色信息
+        fillRoleInfo(List.of(saved));
+        
+        return saved;
     }
 
     /**
@@ -131,7 +147,12 @@ public class CrmUserService {
             existing.setEmail(email);
         }
 
-        return crmUserInfoRepository.save(existing);
+        CrmUserInfo saved = crmUserInfoRepository.save(existing);
+        
+        // 填充角色信息
+        fillRoleInfo(List.of(saved));
+        
+        return saved;
     }
 
     /**
@@ -161,6 +182,58 @@ public class CrmUserService {
                 .orElseThrow(() -> new IllegalArgumentException("用户不存在"));
         user.setStatus(status);
         crmUserInfoRepository.save(user);
+    }
+
+    /**
+     * 填充用户角色信息（角色ID列表和角色名称列表）
+     */
+    private void fillRoleInfo(List<CrmUserInfo> users) {
+        if (users == null || users.isEmpty()) {
+            return;
+        }
+
+        // 收集所有用户的角色ID
+        List<Long> allRoleIds = new ArrayList<>();
+        for (CrmUserInfo user : users) {
+            List<Long> roleIds = user.getRoleIdsList();
+            if (roleIds != null && !roleIds.isEmpty()) {
+                allRoleIds.addAll(roleIds);
+            }
+        }
+
+        if (allRoleIds.isEmpty()) {
+            // 如果没有角色ID，设置空列表
+            for (CrmUserInfo user : users) {
+                user.setRoleIds(new ArrayList<>());
+                user.setRoleNames(new ArrayList<>());
+            }
+            return;
+        }
+
+        // 批量查询所有角色
+        List<CrmRole> roles = crmRoleRepository.findByIdIn(allRoleIds);
+        Map<Long, CrmRole> roleMap = roles.stream()
+                .collect(Collectors.toMap(CrmRole::getId, role -> role));
+
+        // 为每个用户填充角色信息
+        for (CrmUserInfo user : users) {
+            List<Long> roleIds = user.getRoleIdsList();
+            if (roleIds == null || roleIds.isEmpty()) {
+                user.setRoleIds(new ArrayList<>());
+                user.setRoleNames(new ArrayList<>());
+            } else {
+                // 设置角色ID列表
+                user.setRoleIds(roleIds);
+                
+                // 设置角色名称列表
+                List<String> roleNames = roleIds.stream()
+                        .map(roleMap::get)
+                        .filter(role -> role != null)
+                        .map(CrmRole::getName)
+                        .collect(Collectors.toList());
+                user.setRoleNames(roleNames);
+            }
+        }
     }
 }
 

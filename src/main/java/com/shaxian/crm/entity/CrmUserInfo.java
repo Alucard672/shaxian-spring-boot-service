@@ -1,5 +1,7 @@
 package com.shaxian.crm.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.*;
@@ -29,6 +31,7 @@ public class CrmUserInfo {
     private String email;
 
     @Column(name = "role_ids", nullable = false, columnDefinition = "TEXT")
+    @JsonIgnore // 序列化时忽略持久化字段，使用@Transient的roleIds字段
     private String roleIds; // JSON数组格式，如 "[1,2,3]"
 
     @Enumerated(EnumType.STRING)
@@ -72,6 +75,52 @@ public class CrmUserInfo {
                 this.roleIds = "[]";
             }
         }
+    }
+
+    /**
+     * 角色ID列表（用于返回给前端，不持久化）
+     * 注意：与持久化字段roleIds（String类型）不同，此字段为List<Long>类型
+     */
+    @Transient
+    private List<Long> roleIdList;
+
+    /**
+     * 角色名称列表（用于返回给前端，不持久化）
+     */
+    @Transient
+    private List<String> roleNames;
+
+    /**
+     * 获取角色ID列表（用于JSON序列化，字段名为roleIds）
+     */
+    @JsonProperty("roleIds")
+    public List<Long> getRoleIds() {
+        return roleIdList != null ? roleIdList : getRoleIdsList();
+    }
+
+    /**
+     * 设置角色ID列表（用于JSON反序列化，字段名为roleIds）
+     * 注意：此方法仅用于设置临时字段，不会修改持久化字段
+     */
+    @JsonProperty("roleIds")
+    public void setRoleIds(List<Long> roleIds) {
+        this.roleIdList = roleIds;
+    }
+
+    /**
+     * 获取角色名称列表
+     */
+    @JsonProperty("roleNames")
+    public List<String> getRoleNames() {
+        return roleNames != null ? roleNames : new ArrayList<>();
+    }
+
+    /**
+     * 设置角色名称列表
+     */
+    @JsonProperty("roleNames")
+    public void setRoleNames(List<String> roleNames) {
+        this.roleNames = roleNames;
     }
 
     @PrePersist
