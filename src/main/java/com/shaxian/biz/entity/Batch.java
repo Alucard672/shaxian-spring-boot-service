@@ -1,5 +1,6 @@
 package com.shaxian.biz.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.TenantId;
@@ -57,6 +58,7 @@ public class Batch {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "color_id", insertable = false, updatable = false)
+    @JsonIgnore
     private Color color;
 
     @PrePersist
