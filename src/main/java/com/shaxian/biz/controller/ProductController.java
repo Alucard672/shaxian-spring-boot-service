@@ -9,6 +9,7 @@ import com.shaxian.biz.dto.product.request.CreateProductRequest;
 import com.shaxian.biz.dto.product.request.UpdateBatchRequest;
 import com.shaxian.biz.dto.product.request.UpdateColorRequest;
 import com.shaxian.biz.dto.product.request.UpdateProductRequest;
+import com.shaxian.biz.dto.product.response.ShareCodeResponse;
 import com.shaxian.biz.entity.Batch;
 import com.shaxian.biz.entity.Color;
 import com.shaxian.biz.entity.Product;
@@ -195,6 +196,35 @@ public class ProductController {
             UserSession session) {
         productAppService.deleteBatch(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(ApiResponse.ok(null));
+    }
+
+    // ========== 分享码管理 ==========
+    @PostMapping("/{id}/share-code")
+    @Operation(summary = "生成商品分享码", description = "为指定商品生成分享码，需要登录")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "成功生成分享码"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "商品不存在")
+    })
+    public ResponseEntity<ApiResponse<ShareCodeResponse>> generateShareCode(
+            @Parameter(description = "商品ID", required = true) @PathVariable Long id,
+            UserSession session) {
+        ShareCodeResponse shareCode = productAppService.generateShareCode(id, session.getTenantId());
+        return ResponseEntity.ok(ApiResponse.ok(shareCode));
+    }
+
+    @GetMapping("/share/{code}")
+    @Operation(summary = "根据分享码获取商品详情", description = "通过分享码获取商品详情，无需登录")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "成功获取商品信息"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "分享码格式错误或验证失败"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "商品不存在或租户不存在")
+    })
+    public ResponseEntity<ApiResponse<Product>> getProductByShareCode(
+            @Parameter(description = "分享码", required = true) @PathVariable String code) {
+        return productAppService.getProductByShareCode(code)
+                .map(product -> ResponseEntity.ok(ApiResponse.ok(product)))
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(ApiResponse.fail("商品不存在")));
     }
 }
 

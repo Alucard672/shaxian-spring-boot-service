@@ -45,6 +45,10 @@ logging:
 tenant:
   default-expiry-days: 7
 
+product:
+  share-code:
+    secret-key: A0DA337652F46007EFD1DB4BA1F909CD3C6DD92AA6D0FF06EC1DBEF6C911F657
+
 crm:
   admin-phones:
     - 18267150617

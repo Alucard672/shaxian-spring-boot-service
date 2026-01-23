@@ -19,8 +19,11 @@ import com.shaxian.biz.service.product.ProductColorQueryService;
 import com.shaxian.biz.service.product.ProductColorUpdateService;
 import com.shaxian.biz.service.product.ProductCreateService;
 import com.shaxian.biz.service.product.ProductDeleteService;
+import com.shaxian.biz.dto.product.response.ShareCodeResponse;
 import com.shaxian.biz.service.product.ProductQueryService;
+import com.shaxian.biz.service.product.ProductShareCodeService;
 import com.shaxian.biz.service.product.ProductUpdateService;
+import com.shaxian.biz.util.TenantContext;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -41,6 +44,7 @@ public class ProductAppService {
     private final ProductBatchCreateService batchCreateService;
     private final ProductBatchUpdateService batchUpdateService;
     private final ProductBatchDeleteService batchDeleteService;
+    private final ProductShareCodeService productShareCodeService;
 
     public ProductAppService(ProductQueryService productQueryService,
                              ProductCreateService productCreateService,
@@ -53,7 +57,8 @@ public class ProductAppService {
                              ProductBatchQueryService batchQueryService,
                              ProductBatchCreateService batchCreateService,
                              ProductBatchUpdateService batchUpdateService,
-                             ProductBatchDeleteService batchDeleteService) {
+                             ProductBatchDeleteService batchDeleteService,
+                             ProductShareCodeService productShareCodeService) {
         this.productQueryService = productQueryService;
         this.productCreateService = productCreateService;
         this.productUpdateService = productUpdateService;
@@ -66,6 +71,7 @@ public class ProductAppService {
         this.batchCreateService = batchCreateService;
         this.batchUpdateService = batchUpdateService;
         this.batchDeleteService = batchDeleteService;
+        this.productShareCodeService = productShareCodeService;
     }
 
     // product
@@ -181,6 +187,41 @@ public class ProductAppService {
 
     public void deleteBatch(Long id) {
         batchDeleteService.delete(id);
+    }
+
+    // share code
+    /**
+     * 生成商品分享码
+     *
+     * @param productId 商品ID
+     * @param tenantId  租户ID
+     * @return 分享码响应
+     */
+    public ShareCodeResponse generateShareCode(Long productId, Long tenantId) {
+        String shareCode = productShareCodeService.generateShareCode(productId, tenantId);
+        return new ShareCodeResponse(shareCode);
+    }
+
+    /**
+     * 根据分享码获取商品详情
+     *
+     * @param shareCode 分享码
+     * @return 商品详情
+     */
+    public Optional<Product> getProductByShareCode(String shareCode) {
+        // 验证分享码并获取商品ID和租户ID
+        ProductShareCodeService.ShareCodeVerificationResult result = productShareCodeService.verifyAndGetProductId(shareCode);
+
+        // 设置租户上下文，以便正确查询多租户数据
+        TenantContext.setTenantId(result.getTenantId());
+
+        try {
+            // 查询商品详情
+            return productQueryService.getById(result.getProductId());
+        } finally {
+            // 清理租户上下文
+            TenantContext.clear();
+        }
     }
 }
 
