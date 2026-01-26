@@ -23,6 +23,7 @@ import com.shaxian.biz.dto.product.response.ShareCodeResponse;
 import com.shaxian.biz.service.product.ProductQueryService;
 import com.shaxian.biz.service.product.ProductShareCodeService;
 import com.shaxian.biz.service.product.ProductUpdateService;
+import com.shaxian.biz.service.shortcode.ShortCodeService;
 import com.shaxian.biz.util.TenantContext;
 import org.springframework.stereotype.Service;
 
@@ -45,6 +46,7 @@ public class ProductAppService {
     private final ProductBatchUpdateService batchUpdateService;
     private final ProductBatchDeleteService batchDeleteService;
     private final ProductShareCodeService productShareCodeService;
+    private final ShortCodeService shortCodeService;
 
     public ProductAppService(ProductQueryService productQueryService,
                              ProductCreateService productCreateService,
@@ -58,7 +60,8 @@ public class ProductAppService {
                              ProductBatchCreateService batchCreateService,
                              ProductBatchUpdateService batchUpdateService,
                              ProductBatchDeleteService batchDeleteService,
-                             ProductShareCodeService productShareCodeService) {
+                             ProductShareCodeService productShareCodeService,
+                             ShortCodeService shortCodeService) {
         this.productQueryService = productQueryService;
         this.productCreateService = productCreateService;
         this.productUpdateService = productUpdateService;
@@ -72,6 +75,7 @@ public class ProductAppService {
         this.batchUpdateService = batchUpdateService;
         this.batchDeleteService = batchDeleteService;
         this.productShareCodeService = productShareCodeService;
+        this.shortCodeService = shortCodeService;
     }
 
     // product
@@ -203,14 +207,23 @@ public class ProductAppService {
     }
 
     /**
-     * 根据分享码获取商品详情
+     * 根据短码获取商品详情
      *
-     * @param shareCode 分享码
+     * @param shortCode 短码
      * @return 商品详情
      */
-    public Optional<Product> getProductByShareCode(String shareCode) {
+    public Optional<Product> getProductByShareCode(String shortCode) {
+        // 通过短码获取原始分享码
+        String originalShareCode = shortCodeService.getOriginalCode(shortCode)
+                .orElse(null);
+
+        if (originalShareCode == null) {
+            // 短码不存在，返回空
+            return Optional.empty();
+        }
+
         // 验证分享码并获取商品ID和租户ID
-        ProductShareCodeService.ShareCodeVerificationResult result = productShareCodeService.verifyAndGetProductId(shareCode);
+        ProductShareCodeService.ShareCodeVerificationResult result = productShareCodeService.verifyAndGetProductId(originalShareCode);
 
         // 设置租户上下文，以便正确查询多租户数据
         TenantContext.setTenantId(result.getTenantId());

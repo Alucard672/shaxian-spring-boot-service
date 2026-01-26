@@ -3,6 +3,7 @@ package com.shaxian.biz.service.product;
 import com.shaxian.biz.entity.Tenant;
 import com.shaxian.biz.repository.ProductRepository;
 import com.shaxian.biz.repository.TenantRepository;
+import com.shaxian.biz.service.shortcode.ShortCodeService;
 import com.shaxian.biz.util.ProductShareCodeUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,21 +23,23 @@ public class ProductShareCodeService {
 
     private final ProductRepository productRepository;
     private final TenantRepository tenantRepository;
+    private final ShortCodeService shortCodeService;
 
     @Value("${product.share-code.secret-key}")
     private String secretKey;
 
-    public ProductShareCodeService(ProductRepository productRepository, TenantRepository tenantRepository) {
+    public ProductShareCodeService(ProductRepository productRepository, TenantRepository tenantRepository, ShortCodeService shortCodeService) {
         this.productRepository = productRepository;
         this.tenantRepository = tenantRepository;
+        this.shortCodeService = shortCodeService;
     }
 
     /**
-     * 生成分享码
+     * 生成分享码（返回短码）
      *
      * @param productId 商品ID
      * @param tenantId  租户ID
-     * @return 分享码字符串
+     * @return 短码字符串
      * @throws IllegalArgumentException 如果商品不存在或租户不存在
      */
     public String generateShareCode(Long productId, Long tenantId) {
@@ -50,8 +53,11 @@ public class ProductShareCodeService {
             throw new IllegalArgumentException("租户不存在");
         }
 
-        // 生成分享码
-        return ProductShareCodeUtil.generateShareCode(productId, tenantId, secretKey);
+        // 生成原始分享码
+        String originalShareCode = ProductShareCodeUtil.generateShareCode(productId, tenantId, secretKey);
+
+        // 生成短码并返回
+        return shortCodeService.generateShortCode(originalShareCode);
     }
 
     /**
