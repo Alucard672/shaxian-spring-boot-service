@@ -18,7 +18,8 @@ public class AuthService {
     }
 
     /**
-     * 登录校验，返回通过校验的用户和默认租户信息（租户可能为null）
+     * 登录校验，返回通过校验的用户和默认租户信息
+     * 注意：业务用户（非员工用户）必须关联租户才能登录，否则会抛出异常
      */
     public LoginResult login(String phone, String password) {
         User user = userRepository.findByPhone(phone)
@@ -43,6 +44,11 @@ public class AuthService {
         // 查找并设置默认租户
         // 优先级：1. 已有默认租户 2. 用户自己创建的租户(OWNER) 3. 最新绑定的租户
         Tenant defaultTenant = userService.findAndSetDefaultTenant(user.getId()).orElse(null);
+
+        // 业务用户（非员工用户）必须关联租户才能登录
+        if (user.getEmployeeId() == null && defaultTenant == null) {
+            throw new IllegalArgumentException("业务用户必须关联租户才能登录");
+        }
 
         return new LoginResult(user, defaultTenant);
     }
