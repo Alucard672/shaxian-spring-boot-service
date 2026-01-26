@@ -11,7 +11,6 @@ import com.shaxian.biz.repository.UserTenantRepository;
 import com.shaxian.biz.service.auth.AuthService;
 import com.shaxian.biz.service.user.UserService;
 import com.shaxian.biz.service.user.UserTenantService;
-import com.shaxian.crm.entity.CrmCustomer;
 import com.shaxian.crm.repository.CrmCustomerRepository;
 import com.shaxian.crm.service.CrmCustomerService;
 import org.springframework.stereotype.Service;
@@ -20,7 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Service
 public class AuthAppService {
@@ -60,30 +58,58 @@ public class AuthAppService {
             throw new IllegalArgumentException("手机号和密码不能为空");
         }
 
-        AuthService.LoginResult loginResult = authService.login(phone, password);
-        User user = loginResult.getUser();
-        Tenant tenant = loginResult.getTenant();
+        // 先查找用户并验证密码（不检查租户关联）
+        User user = userRepository.findByPhone(phone)
+                .orElseThrow(() -> new IllegalArgumentException("用户不存在"));
+
+        // 检查密码（默认密码123456）
+        if (user.getPassword() == null || user.getPassword().isEmpty()) {
+            if (!"123456".equals(password)) {
+                throw new IllegalArgumentException("密码错误");
+            }
+        } else {
+            if (!user.getPassword().equals(password)) {
+                throw new IllegalArgumentException("密码错误");
+            }
+        }
+
+        // 检查用户状态
+        if (user.getStatus() != User.UserStatus.ACTIVE) {
+            throw new IllegalArgumentException("账户已被禁用");
+        }
 
         // 如果用户没有关联租户，尝试通过手机号匹配CRM客户来关联租户
-        if (tenant == null && user.getEmployeeId() == null) {
-            // 通过手机号查找CRM客户
-            crmCustomerRepository.findByPhone(phone).ifPresent(crmCustomer -> {
-                // 如果找到CRM客户，查找该客户关联的租户
-                tenantRepository.findByCrmCustomerId(crmCustomer.getId()).ifPresent(foundTenant -> {
-                    // 如果找到租户，检查是否已关联，如果没有则创建关联
-                    if (!userTenantService.isUserAssociatedWithTenant(user.getId(), foundTenant.getId())) {
-                        // 关联用户与租户，设置为默认租户
-                        userTenantService.associateUserWithTenant(
-                                user.getId(),
-                                foundTenant.getId(),
-                                UserTenant.RelationshipType.MEMBER,
-                                true  // 设置为默认租户
-                        );
-                    }
+        if (user.getEmployeeId() == null) {
+            // 先检查用户是否已有关联的租户
+            Tenant existingTenant = userService.findAndSetDefaultTenant(user.getId()).orElse(null);
+            
+            // 如果用户没有关联租户，尝试通过手机号查找CRM客户并关联租户
+            if (existingTenant == null) {
+                // 通过手机号查找CRM客户
+                crmCustomerRepository.findByPhone(phone).ifPresent(crmCustomer -> {
+                    // 如果找到CRM客户，查找该客户关联的租户
+                    tenantRepository.findByCrmCustomerId(crmCustomer.getId()).ifPresent(foundTenant -> {
+                        // 如果找到租户，检查是否已关联，如果没有则创建关联
+                        if (!userTenantService.isUserAssociatedWithTenant(user.getId(), foundTenant.getId())) {
+                            // 关联用户与租户，设置为默认租户
+                            userTenantService.associateUserWithTenant(
+                                    user.getId(),
+                                    foundTenant.getId(),
+                                    UserTenant.RelationshipType.MEMBER,
+                                    true  // 设置为默认租户
+                            );
+                        }
+                    });
                 });
-            });
-            // 重新查找默认租户（无论是否新关联，都需要重新查找以确保获取最新的默认租户）
-            tenant = userService.findAndSetDefaultTenant(user.getId()).orElse(null);
+            }
+        }
+
+        // 重新查找并设置默认租户
+        Tenant tenant = userService.findAndSetDefaultTenant(user.getId()).orElse(null);
+
+        // 业务用户（非员工用户）必须关联租户才能登录
+        if (user.getEmployeeId() == null && tenant == null) {
+            throw new IllegalArgumentException("业务用户必须关联租户才能登录");
         }
 
         // 创建用户会话
