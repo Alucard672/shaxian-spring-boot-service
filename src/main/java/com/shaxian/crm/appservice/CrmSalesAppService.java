@@ -4,8 +4,12 @@ import com.shaxian.biz.api.PageResult;
 import com.shaxian.biz.appservice.tenant.TenantAppService;
 import com.shaxian.biz.dto.tenant.request.CreateTenantRequest;
 import com.shaxian.biz.entity.Tenant;
+import com.shaxian.biz.entity.User;
+import com.shaxian.biz.entity.UserTenant;
 import com.shaxian.biz.repository.TenantRepository;
+import com.shaxian.biz.repository.UserRepository;
 import com.shaxian.biz.service.tenant.TenantService;
+import com.shaxian.biz.service.user.UserTenantService;
 import com.shaxian.crm.dto.request.CreateCrmSalesOrderRequest;
 import com.shaxian.crm.dto.request.CrmSalesOrderQueryRequest;
 import com.shaxian.crm.dto.request.UpdateCrmSalesOrderRequest;
@@ -33,6 +37,8 @@ public class CrmSalesAppService {
     private final TenantRepository tenantRepository;
     private final TenantAppService tenantAppService;
     private final TenantService tenantService;
+    private final UserRepository userRepository;
+    private final UserTenantService userTenantService;
 
     @Value("${tenant.default-expiry-days:7}")
     private int defaultExpiryDays;
@@ -43,13 +49,17 @@ public class CrmSalesAppService {
             CrmCustomerRepository crmCustomerRepository,
             TenantRepository tenantRepository,
             TenantAppService tenantAppService,
-            TenantService tenantService) {
+            TenantService tenantService,
+            UserRepository userRepository,
+            UserTenantService userTenantService) {
         this.crmSalesService = crmSalesService;
         this.crmCustomerService = crmCustomerService;
         this.crmCustomerRepository = crmCustomerRepository;
         this.tenantRepository = tenantRepository;
         this.tenantAppService = tenantAppService;
         this.tenantService = tenantService;
+        this.userRepository = userRepository;
+        this.userTenantService = userTenantService;
     }
 
     @Transactional
@@ -162,21 +172,50 @@ public class CrmSalesAppService {
             Long crmCustomerId = existingOrder.getCrmCustomerId();
             Optional<Tenant> existingTenant = tenantRepository.findByCrmCustomerId(crmCustomerId);
             
+            // 获取CRM客户信息
+            CrmCustomer customer = crmCustomerRepository.findById(crmCustomerId)
+                    .orElseThrow(() -> new IllegalArgumentException("CRM客户不存在"));
+            
+            Tenant tenant;
             if (existingTenant.isEmpty()) {
-                // 获取CRM客户信息
-                CrmCustomer customer = crmCustomerRepository.findById(crmCustomerId)
-                        .orElseThrow(() -> new IllegalArgumentException("CRM客户不存在"));
-                
                 // 创建租户
                 CreateTenantRequest tenantRequest = new CreateTenantRequest();
                 tenantRequest.setName(customer.getName());
                 tenantRequest.setAddress(customer.getAddress() != null ? customer.getAddress() : "");
                 
                 // 创建租户，传入crmCustomerId，不关联用户（userId传null）
-                tenantAppService.createTenant(tenantRequest, null, crmCustomerId);
+                tenant = tenantAppService.createTenant(tenantRequest, null, crmCustomerId);
                 
                 // 更新客户类型为正式客户
                 crmCustomerService.updateCustomerType(crmCustomerId, CrmCustomer.CustomerType.OFFICIAL);
+            } else {
+                tenant = existingTenant.get();
+            }
+            
+            // 根据CRM客户的手机号查找或创建用户，并将用户与租户关联
+            if (customer.getPhone() != null && !customer.getPhone().trim().isEmpty()) {
+                User user = userRepository.findByPhone(customer.getPhone()).orElse(null);
+                
+                if (user == null) {
+                    // 如果用户不存在，自动创建用户
+                    user = new User();
+                    user.setPhone(customer.getPhone());
+                    user.setName(customer.getName());
+                    user.setPassword("123456"); // 默认密码
+                    user.setStatus(User.UserStatus.ACTIVE);
+                    user = userRepository.save(user);
+                }
+                
+                // 检查是否已关联租户，如果没有则创建关联
+                if (!userTenantService.isUserAssociatedWithTenant(user.getId(), tenant.getId())) {
+                    // 关联用户与租户，设置为默认租户（因为这是通过销售订单复核创建的正式租户）
+                    userTenantService.associateUserWithTenant(
+                            user.getId(), 
+                            tenant.getId(), 
+                            UserTenant.RelationshipType.MEMBER, 
+                            true  // 设置为默认租户
+                    );
+                }
             }
         }
         
@@ -206,23 +245,25 @@ public class CrmSalesAppService {
         Long crmCustomerId = order.getCrmCustomerId();
         Optional<Tenant> existingTenant = tenantRepository.findByCrmCustomerId(crmCustomerId);
         
+        // 获取CRM客户信息
+        CrmCustomer customer = crmCustomerRepository.findById(crmCustomerId)
+                .orElseThrow(() -> new IllegalArgumentException("CRM客户不存在"));
+        
+        Tenant tenant;
         if (existingTenant.isEmpty()) {
             // 如果没有租户：创建租户并更新客户类型为OFFICIAL
-            CrmCustomer customer = crmCustomerRepository.findById(crmCustomerId)
-                    .orElseThrow(() -> new IllegalArgumentException("CRM客户不存在"));
-            
             CreateTenantRequest tenantRequest = new CreateTenantRequest();
             tenantRequest.setName(customer.getName());
             tenantRequest.setAddress(customer.getAddress() != null ? customer.getAddress() : "");
             
             // 创建租户，传入crmCustomerId，不关联用户（userId传null）
-            tenantAppService.createTenant(tenantRequest, null, crmCustomerId);
+            tenant = tenantAppService.createTenant(tenantRequest, null, crmCustomerId);
             
             // 更新客户类型为正式客户
             crmCustomerService.updateCustomerType(crmCustomerId, CrmCustomer.CustomerType.OFFICIAL);
         } else {
             // 如果已有租户：更新租户信息（延长有效期，确保状态为ACTIVE）
-            Tenant tenant = existingTenant.get();
+            tenant = existingTenant.get();
             
             // 延长有效期（在当前有效期基础上再延长，如果已过期则从当前时间开始计算）
             LocalDateTime newExpiresAt;
@@ -239,7 +280,33 @@ public class CrmSalesAppService {
             tenant.setStatus(Tenant.TenantStatus.ACTIVE);
             
             // 更新租户
-            tenantService.update(tenant.getId(), tenant);
+            tenant = tenantService.update(tenant.getId(), tenant);
+        }
+        
+        // 根据CRM客户的手机号查找或创建用户，并将用户与租户关联
+        if (customer.getPhone() != null && !customer.getPhone().trim().isEmpty()) {
+            User user = userRepository.findByPhone(customer.getPhone()).orElse(null);
+            
+            if (user == null) {
+                // 如果用户不存在，自动创建用户
+                user = new User();
+                user.setPhone(customer.getPhone());
+                user.setName(customer.getName());
+                user.setPassword("123456"); // 默认密码
+                user.setStatus(User.UserStatus.ACTIVE);
+                user = userRepository.save(user);
+            }
+            
+            // 检查是否已关联租户，如果没有则创建关联
+            if (!userTenantService.isUserAssociatedWithTenant(user.getId(), tenant.getId())) {
+                // 关联用户与租户，设置为默认租户（因为这是通过销售订单复核创建的正式租户）
+                userTenantService.associateUserWithTenant(
+                        user.getId(), 
+                        tenant.getId(), 
+                        UserTenant.RelationshipType.MEMBER, 
+                        true  // 设置为默认租户
+                );
+            }
         }
         
         return reviewedOrder;

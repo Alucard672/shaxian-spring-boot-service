@@ -11,6 +11,8 @@ import com.shaxian.biz.repository.UserTenantRepository;
 import com.shaxian.biz.service.auth.AuthService;
 import com.shaxian.biz.service.user.UserService;
 import com.shaxian.biz.service.user.UserTenantService;
+import com.shaxian.crm.entity.CrmCustomer;
+import com.shaxian.crm.repository.CrmCustomerRepository;
 import com.shaxian.crm.service.CrmCustomerService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class AuthAppService {
@@ -30,11 +33,13 @@ public class AuthAppService {
     private final UserRepository userRepository;
     private final CrmCustomerService crmCustomerService;
     private final UserTenantService userTenantService;
+    private final CrmCustomerRepository crmCustomerRepository;
 
     public AuthAppService(AuthService authService, BizUserSessionManager bizUserSessionManager,
                           UserService userService, UserTenantRepository userTenantRepository,
                           TenantRepository tenantRepository, UserRepository userRepository,
-                          CrmCustomerService crmCustomerService, UserTenantService userTenantService) {
+                          CrmCustomerService crmCustomerService, UserTenantService userTenantService,
+                          CrmCustomerRepository crmCustomerRepository) {
         this.authService = authService;
         this.bizUserSessionManager = bizUserSessionManager;
         this.userService = userService;
@@ -43,11 +48,13 @@ public class AuthAppService {
         this.userRepository = userRepository;
         this.crmCustomerService = crmCustomerService;
         this.userTenantService = userTenantService;
+        this.crmCustomerRepository = crmCustomerRepository;
     }
 
     /**
      * 处理登录流程，返回前端需要的用户信息结构（包含 sessionId 和租户信息）
      */
+    @Transactional
     public UserSession login(String phone, String password) {
         if (phone == null || password == null || phone.trim().isEmpty() || password.trim().isEmpty()) {
             throw new IllegalArgumentException("手机号和密码不能为空");
@@ -56,6 +63,28 @@ public class AuthAppService {
         AuthService.LoginResult loginResult = authService.login(phone, password);
         User user = loginResult.getUser();
         Tenant tenant = loginResult.getTenant();
+
+        // 如果用户没有关联租户，尝试通过手机号匹配CRM客户来关联租户
+        if (tenant == null && user.getEmployeeId() == null) {
+            // 通过手机号查找CRM客户
+            crmCustomerRepository.findByPhone(phone).ifPresent(crmCustomer -> {
+                // 如果找到CRM客户，查找该客户关联的租户
+                tenantRepository.findByCrmCustomerId(crmCustomer.getId()).ifPresent(foundTenant -> {
+                    // 如果找到租户，检查是否已关联，如果没有则创建关联
+                    if (!userTenantService.isUserAssociatedWithTenant(user.getId(), foundTenant.getId())) {
+                        // 关联用户与租户，设置为默认租户
+                        userTenantService.associateUserWithTenant(
+                                user.getId(),
+                                foundTenant.getId(),
+                                UserTenant.RelationshipType.MEMBER,
+                                true  // 设置为默认租户
+                        );
+                    }
+                });
+            });
+            // 重新查找默认租户（无论是否新关联，都需要重新查找以确保获取最新的默认租户）
+            tenant = userService.findAndSetDefaultTenant(user.getId()).orElse(null);
+        }
 
         // 创建用户会话
         UserSession userSession = bizUserSessionManager.createSession(user, tenant);
