@@ -38,9 +38,13 @@ logging:
   level:
     root: INFO
     com.shaxian: DEBUG
+    com.shaxian.biz.service.product.ProductShareCodeService: DEBUG
+    com.shaxian.biz.service.product.ProductQueryService: DEBUG
+    com.shaxian.biz.appservice.product.ProductAppService: DEBUG
     org.springframework.web: INFO
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.hibernate.orm.jdbc.bind: TRACE
 
 tenant:
   default-expiry-days: 7

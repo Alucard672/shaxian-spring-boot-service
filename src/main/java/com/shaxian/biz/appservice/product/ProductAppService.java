@@ -25,6 +25,8 @@ import com.shaxian.biz.service.product.ProductShareCodeService;
 import com.shaxian.biz.service.product.ProductUpdateService;
 import com.shaxian.biz.service.shortcode.ShortCodeService;
 import com.shaxian.biz.util.TenantContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -32,6 +34,8 @@ import java.util.Optional;
 
 @Service
 public class ProductAppService {
+
+    private static final Logger logger = LoggerFactory.getLogger(ProductAppService.class);
 
     private final ProductQueryService productQueryService;
     private final ProductCreateService productCreateService;
@@ -224,13 +228,20 @@ public class ProductAppService {
 
         // 验证分享码并获取商品ID和租户ID
         ProductShareCodeService.ShareCodeVerificationResult result = productShareCodeService.verifyAndGetProductId(originalShareCode);
+        
+        logger.info("分享码验证成功，开始查询商品: productId={}, tenantId={}", 
+            result.getProductId(), result.getTenantId());
 
-        // 设置租户上下文，以便正确查询多租户数据
+        // 设置租户上下文，让Hibernate多租户机制使用正确的tenantId
+        // 因为分享码场景没有会话信息，需要手动设置tenantId
         TenantContext.setTenantId(result.getTenantId());
-
+        
         try {
-            // 查询商品详情
-            return productQueryService.getById(result.getProductId());
+            // 显式使用tenantId查询商品，同时设置TenantContext让多租户机制也使用正确的tenantId
+            Optional<Product> product = productQueryService.getByIdAndTenantId(result.getProductId(), result.getTenantId());
+            logger.info("商品查询完成: productId={}, tenantId={}, found={}", 
+                result.getProductId(), result.getTenantId(), product.isPresent());
+            return product;
         } finally {
             // 清理租户上下文
             TenantContext.clear();

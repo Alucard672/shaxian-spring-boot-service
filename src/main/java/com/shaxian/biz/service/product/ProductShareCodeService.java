@@ -5,6 +5,7 @@ import com.shaxian.biz.repository.ProductRepository;
 import com.shaxian.biz.repository.TenantRepository;
 import com.shaxian.biz.service.shortcode.ShortCodeService;
 import com.shaxian.biz.util.ProductShareCodeUtil;
+import com.shaxian.biz.util.TenantContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -43,8 +44,14 @@ public class ProductShareCodeService {
      * @throws IllegalArgumentException 如果商品不存在或租户不存在
      */
     public String generateShareCode(Long productId, Long tenantId) {
-        // 验证商品是否存在
-        if (!productRepository.existsById(productId)) {
+        logger.info("生成分享码: productId={}, tenantId={}", productId, tenantId);
+        
+        // 验证商品是否存在（显式使用tenantId，确保在多租户环境下正确验证）
+        boolean exists = productRepository.existsByIdAndTenantId(productId, tenantId);
+        logger.info("商品存在性检查结果: productId={}, tenantId={}, exists={}", productId, tenantId, exists);
+        
+        if (!exists) {
+            logger.warn("商品不存在: productId={}, tenantId={}", productId, tenantId);
             throw new IllegalArgumentException("商品不存在");
         }
 
@@ -86,10 +93,27 @@ public class ProductShareCodeService {
         Long productId = data.getProductId();
         Long tenantId = data.getTenantId();
 
-        // 验证商品是否存在
-        if (!productRepository.existsById(productId)) {
-            logger.warn("商品不存在: productId={}", productId);
-            throw new IllegalArgumentException("商品不存在");
+        logger.info("开始验证商品存在性: productId={}, tenantId={}", productId, tenantId);
+        
+        // 设置租户上下文，让Hibernate多租户机制使用正确的tenantId
+        // 因为分享码场景没有会话信息，需要手动设置tenantId
+        TenantContext.setTenantId(tenantId);
+        
+        try {
+            // 验证商品是否存在（显式使用tenantId，同时设置TenantContext让多租户机制也使用正确的tenantId）
+            boolean exists = productRepository.existsByIdAndTenantId(productId, tenantId);
+            logger.info("商品存在性检查结果: productId={}, tenantId={}, exists={}", productId, tenantId, exists);
+            
+            if (!exists) {
+                logger.warn("商品不存在: productId={}, tenantId={}", productId, tenantId);
+                // 尝试直接查询看看是否能找到
+                var productOpt = productRepository.findByIdAndTenantId(productId, tenantId);
+                logger.warn("直接查询结果: productId={}, tenantId={}, found={}", productId, tenantId, productOpt.isPresent());
+                throw new IllegalArgumentException("商品不存在");
+            }
+        } finally {
+            // 清理租户上下文
+            TenantContext.clear();
         }
 
         // 验证租户是否存在
