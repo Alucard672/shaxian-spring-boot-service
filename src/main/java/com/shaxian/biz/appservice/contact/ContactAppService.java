@@ -36,7 +36,6 @@ public class ContactAppService {
     public Customer createCustomer(CreateCustomerRequest request) {
         Customer customer = new Customer();
         customer.setName(request.getName());
-        customer.setCode(request.getCode());
         customer.setContactPerson(request.getContactPerson());
         customer.setPhone(request.getPhone());
         customer.setAddress(request.getAddress());
@@ -54,7 +53,6 @@ public class ContactAppService {
     public Customer updateCustomer(Long id, UpdateCustomerRequest request) {
         Customer customer = new Customer();
         if (request.getName() != null) customer.setName(request.getName());
-        if (request.getCode() != null) customer.setCode(request.getCode());
         if (request.getContactPerson() != null) customer.setContactPerson(request.getContactPerson());
         if (request.getPhone() != null) customer.setPhone(request.getPhone());
         if (request.getAddress() != null) customer.setAddress(request.getAddress());

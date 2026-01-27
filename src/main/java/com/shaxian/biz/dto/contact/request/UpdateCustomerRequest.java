@@ -13,10 +13,6 @@ public class UpdateCustomerRequest {
     @Schema(description = "客户名称", example = "张三公司")
     private String name;
 
-    @Size(max = 50, message = "客户编码长度不能超过50")
-    @Schema(description = "客户编码", example = "CUST001")
-    private String code;
-
     @Size(max = 100, message = "联系人长度不能超过100")
     @Schema(description = "联系人", example = "张三")
     private String contactPerson;

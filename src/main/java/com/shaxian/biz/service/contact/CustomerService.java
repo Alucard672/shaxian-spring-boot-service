@@ -27,9 +27,6 @@ public class CustomerService {
 
     @Transactional
     public Customer create(Customer customer) {
-        if (customerRepository.existsByCode(customer.getCode())) {
-            throw new IllegalArgumentException("客户编码已存在");
-        }
         return customerRepository.save(customer);
     }
 
@@ -37,11 +34,6 @@ public class CustomerService {
     public Customer update(Long id, Customer customer) {
         Customer existing = customerRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("客户不存在或无权访问"));
-
-        if (!existing.getCode().equals(customer.getCode()) &&
-                customerRepository.existsByCode(customer.getCode())) {
-            throw new IllegalArgumentException("客户编码已存在");
-        }
 
         customer.setId(id);
         customer.setCreatedAt(existing.getCreatedAt());

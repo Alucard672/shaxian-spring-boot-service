@@ -64,7 +64,6 @@ CREATE TABLE batches (
 CREATE TABLE customers (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
   name VARCHAR(200) NOT NULL,
-  code VARCHAR(50) UNIQUE NOT NULL,
   contact_person VARCHAR(100),
   phone VARCHAR(50),
   address TEXT,
@@ -74,7 +73,6 @@ CREATE TABLE customers (
   remark TEXT,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  INDEX idx_code (code),
   INDEX idx_status (status)
 );
 
