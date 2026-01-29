@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -66,7 +67,7 @@ public class SalesController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "成功创建销售订单")
     })
     public ResponseEntity<ApiResponse<SalesOrder>> createSales(
-            @RequestBody com.shaxian.biz.dto.sales.request.CreateSalesOrderRequest request,
+            @Valid @RequestBody com.shaxian.biz.dto.sales.request.CreateSalesOrderRequest request,
             UserSession session) {
         SalesOrder created = salesAppService.createSales(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(created));

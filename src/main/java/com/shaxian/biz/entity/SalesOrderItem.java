@@ -39,10 +39,10 @@ public class SalesOrderItem {
     @Column(name = "color_code", nullable = false, length = 50)
     private String colorCode;
 
-    @Column(name = "batch_id", nullable = false)
+    @Column(name = "batch_id")
     private Long batchId;
 
-    @Column(name = "batch_code", nullable = false, length = 50)
+    @Column(name = "batch_code", length = 50)
     private String batchCode;
 
     @Column(nullable = false, precision = 10, scale = 2)

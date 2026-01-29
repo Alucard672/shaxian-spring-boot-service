@@ -61,10 +61,12 @@ public class SalesService {
         }
         salesOrderItemRepository.saveAll(items);
         
-        // 如果状态是已出库，减少库存
+        // 如果状态是已出库，减少库存（仅对有缸号的明细扣减）
         if (order.getStatus() == SalesOrder.OrderStatus.SHIPPED) {
             for (SalesOrderItem item : items) {
-                batchRepository.decreaseStock(item.getBatchId(), item.getQuantity());
+                if (item.getBatchId() != null) {
+                    batchRepository.decreaseStock(item.getBatchId(), item.getQuantity());
+                }
             }
         }
         

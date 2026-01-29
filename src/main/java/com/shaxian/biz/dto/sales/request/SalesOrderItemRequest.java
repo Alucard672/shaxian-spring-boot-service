@@ -34,12 +34,11 @@ public class SalesOrderItemRequest {
     @Schema(description = "色号编码", example = "COLOR001")
     private String colorCode;
 
-    @NotNull(message = "缸号ID不能为空")
-    @Schema(description = "缸号ID", required = true, example = "1")
+    @Schema(description = "缸号ID，无缸号可不传", example = "1")
     private Long batchId;
 
     @Size(max = 50, message = "缸号编码长度不能超过50")
-    @Schema(description = "缸号编码", example = "BATCH001")
+    @Schema(description = "缸号编码，无缸号可不传", example = "BATCH001")
     private String batchCode;
 
     @NotNull(message = "数量不能为空")
