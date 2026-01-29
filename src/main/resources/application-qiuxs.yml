@@ -10,11 +10,10 @@ spring:
   datasource:
     password: 123456
     url: jdbc:mysql://192.168.1.110:3306/shaxian_erp?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
-  # Redis配置
+  # Redis 配置（password 必须与 redis.conf 中 requirepass 一致，否则 NOAUTH）
   redis:
     host: 192.168.1.110
     port: 6379
-    # 密码
     password: 123456
     # 数据库索引（默认为0）
     database: 0
@@ -31,8 +30,8 @@ spring:
         max-idle: 8
         # 连接池中的最小空闲连接
         min-idle: 0
+# 会话配置（crm/biz 下必须使用 session 子键，timeout 写在 session 下）
 crm:
-  # 会话超时时间（秒），默认2小时
   session:
     timeout: 7200
     # 是否使用Redis存储会话，默认为false（使用本地内存Map）

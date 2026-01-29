@@ -29,6 +29,23 @@ spring:
     time-zone: Asia/Shanghai
     date-format: yyyy-MM-dd HH:mm:ss
 
+  # Redis 配置（使用 Redis 会话或缓存时必填）
+  # NOAUTH 排查：password 必须与 Redis 服务端 requirepass 完全一致。
+  # 核对方式：查看 redis.conf 中 requirepass，或 redis-cli 连接后 CONFIG GET requirepass（需先 AUTH）。
+  # 使用 profile 时，以 application-{profile}.yml 中 spring.redis.password 为准，请在该文件中设置正确密码。
+  redis:
+    host: 127.0.0.1
+    port: 6379
+    password: # 与 Redis 服务端 requirepass 保持一致，有特殊字符时用双引号如 "Redis@2025"
+    database: 0
+    timeout: 2000ms
+    lettuce:
+      pool:
+        max-active: 8
+        max-wait: -1ms
+        max-idle: 8
+        min-idle: 0
+
 server:
   port: 8080
   servlet:
@@ -53,6 +70,15 @@ product:
   share-code:
     secret-key: A0DA337652F46007EFD1DB4BA1F909CD3C6DD92AA6D0FF06EC1DBEF6C911F657
 
+# 会话配置（crm/biz 下必须使用 session 子键，勿写为 crm: 下一行 ": 7200" 等错误格式）
 crm:
   admin-phones:
     - 18267150617
+  session:
+    timeout: 7200
+    use-redis: false
+
+biz:
+  session:
+    timeout: 7200
+    use-redis: false
