@@ -15,6 +15,7 @@ import java.util.Optional;
 public interface BatchRepository extends JpaRepository<Batch, Long> {
     List<Batch> findByColorIdOrderByCode(Long colorId);
     Optional<Batch> findByCode(String code);
+    Optional<Batch> findByTenantIdAndCode(Long tenantId, String code);
     boolean existsByCode(String code);
     
     @Modifying

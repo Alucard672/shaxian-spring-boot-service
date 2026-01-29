@@ -1,5 +1,6 @@
 package com.shaxian.biz.service.sales;
 
+import com.shaxian.biz.entity.Batch;
 import com.shaxian.biz.entity.SalesOrder;
 import com.shaxian.biz.entity.SalesOrderItem;
 import com.shaxian.biz.repository.BatchRepository;
@@ -61,8 +62,17 @@ public class SalesService {
         }
         salesOrderItemRepository.saveAll(items);
         
-        // 如果状态是已出库，减少库存（仅对有缸号的明细扣减，batch_id=0 表示无缸号不扣减）
+        // 如果状态是已出库，先校验缸号库存再扣减（batch_id=0 表示无缸号不扣减）
         if (order.getStatus() == SalesOrder.OrderStatus.SHIPPED) {
+            for (SalesOrderItem item : items) {
+                if (item.getBatchId() != null && item.getBatchId() != 0) {
+                    Batch batch = batchRepository.findById(item.getBatchId())
+                            .orElseThrow(() -> new IllegalArgumentException("缸号不存在: " + item.getBatchId()));
+                    if (batch.getStockQuantity() == null || item.getQuantity().compareTo(batch.getStockQuantity()) > 0) {
+                        throw new IllegalArgumentException("缸号库存不足: " + batch.getCode() + "，当前库存 " + batch.getStockQuantity() + "，出库数量 " + item.getQuantity());
+                    }
+                }
+            }
             for (SalesOrderItem item : items) {
                 if (item.getBatchId() != null && item.getBatchId() != 0) {
                     batchRepository.decreaseStock(item.getBatchId(), item.getQuantity());

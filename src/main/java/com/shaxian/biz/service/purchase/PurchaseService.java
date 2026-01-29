@@ -1,7 +1,9 @@
 package com.shaxian.biz.service.purchase;
 
+import com.shaxian.biz.entity.Batch;
 import com.shaxian.biz.entity.PurchaseOrder;
 import com.shaxian.biz.entity.PurchaseOrderItem;
+import com.shaxian.biz.repository.BatchRepository;
 import com.shaxian.biz.repository.PurchaseOrderRepository;
 import com.shaxian.biz.repository.PurchaseOrderItemRepository;
 import com.shaxian.biz.util.OrderNumberGenerator;
@@ -10,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,12 +20,15 @@ import java.util.Optional;
 public class PurchaseService {
     private final PurchaseOrderRepository purchaseOrderRepository;
     private final PurchaseOrderItemRepository purchaseOrderItemRepository;
+    private final BatchRepository batchRepository;
 
     public PurchaseService(
             PurchaseOrderRepository purchaseOrderRepository,
-            PurchaseOrderItemRepository purchaseOrderItemRepository) {
+            PurchaseOrderItemRepository purchaseOrderItemRepository,
+            BatchRepository batchRepository) {
         this.purchaseOrderRepository = purchaseOrderRepository;
         this.purchaseOrderItemRepository = purchaseOrderItemRepository;
+        this.batchRepository = batchRepository;
     }
 
 
@@ -59,6 +65,9 @@ public class PurchaseService {
         }
         purchaseOrderItemRepository.saveAll(items);
         
+        if (order.getStatus() == PurchaseOrder.OrderStatus.RECEIVED) {
+            applyStockInForReceived(saved, items);
+        }
         saved.setItems(items);
         return saved;
     }
@@ -96,8 +105,46 @@ public class PurchaseService {
         purchaseOrderItemRepository.saveAll(items);
         
         PurchaseOrder saved = purchaseOrderRepository.save(order);
+        if (existing.getStatus() != PurchaseOrder.OrderStatus.RECEIVED && order.getStatus() == PurchaseOrder.OrderStatus.RECEIVED) {
+            applyStockInForReceived(saved, items);
+        }
         saved.setItems(items);
         return saved;
+    }
+
+    /**
+     * 进货单状态为 RECEIVED 时，按明细增加对应缸号库存：存在则 increaseStock，不存在则创建缸号后写入库存。
+     */
+    private void applyStockInForReceived(PurchaseOrder order, List<PurchaseOrderItem> items) {
+        Long tenantId = order.getTenantId();
+        for (PurchaseOrderItem item : items) {
+            if (item.getColorId() == null) {
+                throw new IllegalArgumentException("入库时明细必须指定色号(color_id)，缸号: " + item.getBatchCode());
+            }
+            String batchCode = item.getBatchCode();
+            if (batchCode == null || batchCode.isBlank()) {
+                throw new IllegalArgumentException("入库时明细必须指定缸号(batch_code)");
+            }
+            Optional<Batch> existingBatch = batchRepository.findByTenantIdAndCode(tenantId, batchCode);
+            if (existingBatch.isPresent()) {
+                batchRepository.increaseStock(existingBatch.get().getId(), item.getQuantity());
+            } else {
+                Batch batch = new Batch();
+                batch.setTenantId(tenantId);
+                batch.setColorId(item.getColorId());
+                batch.setCode(batchCode);
+                batch.setInitialQuantity(item.getQuantity());
+                batch.setStockQuantity(item.getQuantity());
+                batch.setSupplierId(order.getSupplierId());
+                batch.setSupplierName(order.getSupplierName());
+                batch.setPurchasePrice(item.getPrice());
+                batch.setProductionDate(item.getProductionDate());
+                batch.setStockLocation(item.getStockLocation());
+                batch.setCreatedAt(LocalDateTime.now());
+                batch.setUpdatedAt(LocalDateTime.now());
+                batchRepository.save(batch);
+            }
+        }
     }
 
     @Transactional
