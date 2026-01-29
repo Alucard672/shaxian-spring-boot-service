@@ -62,10 +62,10 @@ public class SalesService {
         }
         salesOrderItemRepository.saveAll(items);
         
-        // 如果状态是已出库，先校验缸号库存再扣减（batch_id=0 表示无缸号不扣减）
+        // 如果状态是已出库，先校验缸号库存再扣减（batch_id 为 null 表示无缸号不扣减）
         if (order.getStatus() == SalesOrder.OrderStatus.SHIPPED) {
             for (SalesOrderItem item : items) {
-                if (item.getBatchId() != null && item.getBatchId() != 0) {
+                if (item.getBatchId() != null) {
                     Batch batch = batchRepository.findById(item.getBatchId())
                             .orElseThrow(() -> new IllegalArgumentException("缸号不存在: " + item.getBatchId()));
                     if (batch.getStockQuantity() == null || item.getQuantity().compareTo(batch.getStockQuantity()) > 0) {
@@ -74,7 +74,7 @@ public class SalesService {
                 }
             }
             for (SalesOrderItem item : items) {
-                if (item.getBatchId() != null && item.getBatchId() != 0) {
+                if (item.getBatchId() != null) {
                     batchRepository.decreaseStock(item.getBatchId(), item.getQuantity());
                 }
             }

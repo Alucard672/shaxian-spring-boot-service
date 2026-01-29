@@ -39,11 +39,11 @@ public class SalesOrderItem {
     @Column(name = "color_code", nullable = false, length = 50)
     private String colorCode;
 
-    @Column(name = "batch_id", nullable = false)
-    private Long batchId = 0L;
+    @Column(name = "batch_id")
+    private Long batchId;
 
-    @Column(name = "batch_code", length = 50, nullable = false)
-    private String batchCode = "";
+    @Column(name = "batch_code", length = 50)
+    private String batchCode;
 
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal quantity;
@@ -66,10 +66,6 @@ public class SalesOrderItem {
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
-        // batch_id、batch_code 非必填，未传时默认值
-        if (batchId == null) {
-            batchId = 0L;
-        }
         if (batchCode == null) {
             batchCode = "";
         }

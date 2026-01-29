@@ -168,7 +168,7 @@ class SalesServiceTest {
     }
 
     @Test
-    void createSales_statusShipped_batchIdZero_doesNotDecreaseStock() {
+    void createSales_statusShipped_batchIdNull_doesNotDecreaseStock() {
         SalesOrder order = new SalesOrder();
         order.setTenantId(1L);
         order.setCustomerId(1L);
@@ -185,7 +185,7 @@ class SalesServiceTest {
         item.setColorId(1L);
         item.setColorName("色");
         item.setColorCode("C1");
-        item.setBatchId(0L);
+        item.setBatchId(null);
         item.setBatchCode("");
         item.setQuantity(new BigDecimal("5"));
         item.setUnit("kg");

@@ -90,8 +90,8 @@ public class SalesAppService {
             item.setColorId(itemRequest.getColorId());
             item.setColorName(itemRequest.getColorName());
             item.setColorCode(itemRequest.getColorCode());
-            // batch_id、batch_code 非必填，未传时服务端初始化为默认值
-            item.setBatchId(itemRequest.getBatchId() != null ? itemRequest.getBatchId() : 0L);
+            // batch_id、batch_code 非必填，未传时保持 null/空
+            item.setBatchId(itemRequest.getBatchId());
             item.setBatchCode(itemRequest.getBatchCode() != null && !itemRequest.getBatchCode().isEmpty()
                     ? itemRequest.getBatchCode() : "");
             item.setQuantity(itemRequest.getQuantity());

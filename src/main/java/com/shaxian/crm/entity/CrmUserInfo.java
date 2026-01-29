@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.shaxian.tech.hibernate.JsonStorage;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
@@ -32,7 +31,6 @@ public class CrmUserInfo {
     private String email;
 
     @Column(name = "role_ids", nullable = false, columnDefinition = "TEXT")
-    @JsonStorage(emptyValue = "[]") // 全局拦截器在 insert 时若为 null 会设为 "[]"
     @JsonIgnore // 序列化时忽略持久化字段，使用@Transient的roleIds字段
     private String roleIds; // JSON数组格式，如 "[1,2,3]"
 
@@ -129,6 +127,9 @@ public class CrmUserInfo {
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
+        if (roleIds == null) {
+            roleIds = "[]";
+        }
     }
 
     @PreUpdate
