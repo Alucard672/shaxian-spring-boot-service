@@ -1,0 +1,8 @@
+-- 销售单明细支持无缸号：batch_id 未传时服务端默认 0
+-- 应用启动时会自动插入 id=0 占位行（products → colors → batches），以满足 batch_id=0 的外键约束，无需改 NULL。
+-- 若需手动执行（可选），可先执行 IdZeroBootstrapRunner 中的逻辑或以下语句（MySQL，且需先有 products/colors id=0）：
+--
+-- SET SESSION sql_mode = CONCAT(IFNULL(@@sql_mode, ''), ',NO_AUTO_VALUE_ON_ZERO');
+-- INSERT IGNORE INTO products (id, tenant_id, name, code, unit, type) VALUES (0, 1, '_NONE_', '_NONE_0', 'kg', 'RAW_MATERIAL');
+-- INSERT IGNORE INTO colors (id, tenant_id, product_id, code, name, status) VALUES (0, 1, 0, '_NONE_0', '_NONE_', 'ON_SALE');
+-- INSERT IGNORE INTO batches (id, tenant_id, color_id, code, stock_quantity, initial_quantity) VALUES (0, 1, 0, '_NONE_0', 0, 0);

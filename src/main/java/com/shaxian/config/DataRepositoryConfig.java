@@ -1,5 +1,8 @@
 package com.shaxian.config;
 
+import com.shaxian.tech.hibernate.DefaultValueInterceptor;
+import org.hibernate.cfg.AvailableSettings;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
@@ -9,5 +12,16 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 public class DataRepositoryConfig {
-    // 其他数据访问相关配置
+
+    @Bean
+    public DefaultValueInterceptor defaultValueInterceptor() {
+        return new DefaultValueInterceptor();
+    }
+
+    @Bean
+    public org.springframework.boot.autoconfigure.orm.jpa.HibernatePropertiesCustomizer
+    hibernateDefaultValueInterceptorCustomizer(DefaultValueInterceptor interceptor) {
+        return hibernateProperties ->
+                hibernateProperties.put(AvailableSettings.INTERCEPTOR, interceptor);
+    }
 }

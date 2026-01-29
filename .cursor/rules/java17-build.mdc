@@ -1,0 +1,30 @@
+---
+description: 构建使用 Java 17，避免默认 JDK
+alwaysApply: true
+---
+
+# Java 17 构建要求
+
+- 构建/编译项目时必须显式使用 Java 17。
+- 不要依赖环境变量中的默认 Java 版本。
+- 执行命令前应确保 `JAVA_HOME` 指向 17，或在命令中显式指定 17。
+
+示例：
+
+```bash
+# macOS: 临时指定 Java 17
+export JAVA_HOME="$(/usr/libexec/java_home -v 17)"
+mvn -version
+mvn -q -DskipTests package
+```
+
+# 测试环境日志查看
+
+- 查看测试环境最新日志：使用 `scripts/show_test_log.sh`。
+- 该脚本会输出最新日志文件的最近 300 行。
+
+示例：
+
+```bash
+scripts/show_test_log.sh
+```
