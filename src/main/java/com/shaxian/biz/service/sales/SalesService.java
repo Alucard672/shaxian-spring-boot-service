@@ -6,6 +6,7 @@ import com.shaxian.biz.entity.SalesOrderItem;
 import com.shaxian.biz.repository.BatchRepository;
 import com.shaxian.biz.repository.SalesOrderRepository;
 import com.shaxian.biz.repository.SalesOrderItemRepository;
+import com.shaxian.biz.service.settings.SystemParamsService;
 import com.shaxian.biz.util.OrderNumberGenerator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,14 +21,17 @@ public class SalesService {
     private final SalesOrderRepository salesOrderRepository;
     private final SalesOrderItemRepository salesOrderItemRepository;
     private final BatchRepository batchRepository;
+    private final SystemParamsService systemParamsService;
 
     public SalesService(
             SalesOrderRepository salesOrderRepository,
             SalesOrderItemRepository salesOrderItemRepository,
-            BatchRepository batchRepository) {
+            BatchRepository batchRepository,
+            SystemParamsService systemParamsService) {
         this.salesOrderRepository = salesOrderRepository;
         this.salesOrderItemRepository = salesOrderItemRepository;
         this.batchRepository = batchRepository;
+        this.systemParamsService = systemParamsService;
     }
 
 
@@ -62,14 +66,17 @@ public class SalesService {
         }
         salesOrderItemRepository.saveAll(items);
         
-        // 如果状态是已出库，先校验缸号库存再扣减（batch_id 为 null 表示无缸号不扣减）
+        // 如果状态是已出库，按系统参数决定是否校验缸号库存，再扣减（batch_id 为 null 表示无缸号不扣减）
         if (order.getStatus() == SalesOrder.OrderStatus.SHIPPED) {
-            for (SalesOrderItem item : items) {
-                if (item.getBatchId() != null) {
-                    Batch batch = batchRepository.findById(item.getBatchId())
-                            .orElseThrow(() -> new IllegalArgumentException("缸号不存在: " + item.getBatchId()));
-                    if (batch.getStockQuantity() == null || item.getQuantity().compareTo(batch.getStockQuantity()) > 0) {
-                        throw new IllegalArgumentException("缸号库存不足: " + batch.getCode() + "，当前库存 " + batch.getStockQuantity() + "，出库数量 " + item.getQuantity());
+            boolean allowNegativeStock = Boolean.TRUE.equals(systemParamsService.getSystemParams().getAllowNegativeStock());
+            if (!allowNegativeStock) {
+                for (SalesOrderItem item : items) {
+                    if (item.getBatchId() != null) {
+                        Batch batch = batchRepository.findById(item.getBatchId())
+                                .orElseThrow(() -> new IllegalArgumentException("缸号不存在: " + item.getBatchId()));
+                        if (batch.getStockQuantity() == null || item.getQuantity().compareTo(batch.getStockQuantity()) > 0) {
+                            throw new IllegalArgumentException("缸号库存不足: " + batch.getCode() + "，当前库存 " + batch.getStockQuantity() + "，出库数量 " + item.getQuantity());
+                        }
                     }
                 }
             }

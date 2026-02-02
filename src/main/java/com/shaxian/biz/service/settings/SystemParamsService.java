@@ -40,6 +40,9 @@ public class SystemParamsService {
         if (request.containsKey("enableDyeingProcess")) {
             params.setEnableDyeingProcess((Boolean) request.get("enableDyeingProcess"));
         }
+        if (request.containsKey("allowNegativeStock")) {
+            params.setAllowNegativeStock((Boolean) request.get("allowNegativeStock"));
+        }
 
         return systemParamsRepository.save(params);
     }

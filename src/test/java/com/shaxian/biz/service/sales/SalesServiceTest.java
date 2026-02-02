@@ -3,9 +3,11 @@ package com.shaxian.biz.service.sales;
 import com.shaxian.biz.entity.Batch;
 import com.shaxian.biz.entity.SalesOrder;
 import com.shaxian.biz.entity.SalesOrderItem;
+import com.shaxian.biz.entity.SystemParams;
 import com.shaxian.biz.repository.BatchRepository;
 import com.shaxian.biz.repository.SalesOrderItemRepository;
 import com.shaxian.biz.repository.SalesOrderRepository;
+import com.shaxian.biz.service.settings.SystemParamsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,16 +37,25 @@ class SalesServiceTest {
     private SalesOrderItemRepository salesOrderItemRepository;
     @Mock
     private BatchRepository batchRepository;
+    @Mock
+    private SystemParamsService systemParamsService;
 
     private SalesService salesService;
 
     @BeforeEach
     void setUp() {
-        salesService = new SalesService(salesOrderRepository, salesOrderItemRepository, batchRepository);
+        salesService = new SalesService(salesOrderRepository, salesOrderItemRepository, batchRepository, systemParamsService);
+    }
+
+    private void mockSystemParamsAllowNegativeStock(boolean allow) {
+        SystemParams params = new SystemParams();
+        params.setAllowNegativeStock(allow);
+        when(systemParamsService.getSystemParams()).thenReturn(params);
     }
 
     @Test
     void createSales_statusShipped_withBatchId_decreasesStock() {
+        mockSystemParamsAllowNegativeStock(false);
         SalesOrder order = new SalesOrder();
         order.setTenantId(1L);
         order.setCustomerId(1L);
@@ -126,6 +137,7 @@ class SalesServiceTest {
 
     @Test
     void createSales_statusShipped_insufficientStock_throwsAndDoesNotDecrease() {
+        mockSystemParamsAllowNegativeStock(false);
         SalesOrder order = new SalesOrder();
         order.setTenantId(1L);
         order.setCustomerId(1L);
@@ -168,7 +180,47 @@ class SalesServiceTest {
     }
 
     @Test
+    void createSales_statusShipped_allowNegativeStock_insufficientStock_decreasesStock() {
+        mockSystemParamsAllowNegativeStock(true);
+        SalesOrder order = new SalesOrder();
+        order.setTenantId(1L);
+        order.setCustomerId(1L);
+        order.setCustomerName("客户");
+        order.setSalesDate(LocalDate.now());
+        order.setStatus(SalesOrder.OrderStatus.SHIPPED);
+        order.setReceivedAmount(BigDecimal.ZERO);
+
+        SalesOrderItem item = new SalesOrderItem();
+        item.setTenantId(1L);
+        item.setProductId(1L);
+        item.setProductName("商品");
+        item.setProductCode("P001");
+        item.setColorId(1L);
+        item.setColorName("色");
+        item.setColorCode("C1");
+        item.setBatchId(10L);
+        item.setBatchCode("B001");
+        item.setQuantity(new BigDecimal("20"));
+        item.setUnit("kg");
+        item.setPrice(new BigDecimal("100"));
+
+        when(salesOrderRepository.save(any(SalesOrder.class))).thenAnswer(inv -> {
+            SalesOrder o = inv.getArgument(0);
+            o.setId(1L);
+            return o;
+        });
+
+        SalesOrder result = salesService.createSales(order, List.of(item));
+
+        verify(salesOrderRepository).save(any(SalesOrder.class));
+        verify(salesOrderItemRepository).saveAll(anyList());
+        verify(batchRepository, never()).findById(anyLong());
+        verify(batchRepository).decreaseStock(eq(10L), eq(new BigDecimal("20")));
+    }
+
+    @Test
     void createSales_statusShipped_batchIdNull_doesNotDecreaseStock() {
+        mockSystemParamsAllowNegativeStock(false);
         SalesOrder order = new SalesOrder();
         order.setTenantId(1L);
         order.setCustomerId(1L);

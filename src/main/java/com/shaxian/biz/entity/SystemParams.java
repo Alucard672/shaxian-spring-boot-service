@@ -15,6 +15,9 @@ public class SystemParams {
     @Column(name = "enable_dyeing_process", nullable = false)
     private Boolean enableDyeingProcess = false;
 
+    @Column(name = "allow_negative_stock", nullable = false)
+    private Boolean allowNegativeStock = false;
+
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 

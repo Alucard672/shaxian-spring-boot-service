@@ -464,6 +464,7 @@ CREATE TABLE inventory_alert_settings (
 CREATE TABLE system_params (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
   enable_dyeing_process BOOLEAN NOT NULL DEFAULT FALSE,
+  allow_negative_stock BOOLEAN NOT NULL DEFAULT FALSE,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
@@ -500,7 +501,7 @@ INSERT INTO store_info (name) VALUES ('');
 INSERT INTO inventory_alert_settings (enabled, auto_alert) VALUES (FALSE, FALSE);
 
 -- 初始化系统参数（默认值）
-INSERT INTO system_params (enable_dyeing_process) VALUES (FALSE);
+INSERT INTO system_params (enable_dyeing_process, allow_negative_stock) VALUES (FALSE, FALSE);
 
 
 

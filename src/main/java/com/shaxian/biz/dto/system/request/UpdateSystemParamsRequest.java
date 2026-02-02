@@ -8,4 +8,7 @@ import lombok.Data;
 public class UpdateSystemParamsRequest {
     @Schema(description = "是否启用染色流程", example = "true")
     private Boolean enableDyeingProcess;
+
+    @Schema(description = "是否允许负库存（销售出库时库存不足不提醒，直接扣减到负数）", example = "false")
+    private Boolean allowNegativeStock;
 }
