@@ -11,5 +11,4 @@ import java.util.Optional;
 public interface TenantRepository extends JpaRepository<Tenant, Long>, JpaSpecificationExecutor<Tenant> {
     Optional<Tenant> findByCode(String code);
     boolean existsByCode(String code);
-    Optional<Tenant> findByCrmCustomerId(Long crmCustomerId);
 }

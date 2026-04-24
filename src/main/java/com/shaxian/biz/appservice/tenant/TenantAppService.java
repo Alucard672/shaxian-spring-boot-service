@@ -27,27 +27,15 @@ public class TenantAppService {
 
     @Transactional
     public Tenant createTenant(CreateTenantRequest request, Long userId) {
-        return createTenant(request, userId, null);
-    }
-
-    @Transactional
-    public Tenant createTenant(CreateTenantRequest request, Long userId, Long crmCustomerId) {
-        // 创建租户实体
         Tenant tenant = new Tenant();
         tenant.setName(request.getName());
         tenant.setAddress(request.getAddress());
-        tenant.setCrmCustomerId(crmCustomerId);
         // code 和 expiresAt 由 TenantService 自动设置
 
-        // 创建租户
         Tenant savedTenant = tenantService.create(tenant);
 
-        // 使用领域服务统一处理用户关联租户的逻辑
-        // 创建用户租户关联关系，设置为拥有者
-        // 如果用户还没有默认租户，则将新创建的租户设置为默认租户
-        // 如果是从CRM销售流程创建（crmCustomerId不为空），则不关联用户（租户由系统自动创建）
-        if (crmCustomerId == null && userId != null) {
-            userTenantService.associateUserWithTenant(userId, savedTenant.getId(), 
+        if (userId != null) {
+            userTenantService.associateUserWithTenant(userId, savedTenant.getId(),
                     UserTenant.RelationshipType.OWNER, false);
         }
 

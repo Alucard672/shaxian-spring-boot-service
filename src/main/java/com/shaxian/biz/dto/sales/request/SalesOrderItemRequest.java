@@ -22,8 +22,7 @@ public class SalesOrderItemRequest {
     @Schema(description = "商品编码", example = "PROD001")
     private String productCode;
 
-    @NotNull(message = "色号ID不能为空")
-    @Schema(description = "色号ID", required = true, example = "1")
+    @Schema(description = "色号ID（纱线业务必填，SaaS 授权可为空）", example = "1")
     private Long colorId;
 
     @Size(max = 100, message = "色号名称长度不能超过100")

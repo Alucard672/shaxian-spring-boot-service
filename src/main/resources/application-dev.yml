@@ -30,13 +30,7 @@ spring:
         # 连接池中的最小空闲连接
         min-idle: 0
 
-# 会话配置（crm/biz 下必须使用 session 子键，timeout 写在 session 下）
-crm:
-  session:
-    timeout: 7200
-    # 是否使用Redis存储会话，默认为false（使用本地内存Map）
-    use-redis: true
-
+# 会话配置
 biz:
   # 会话超时时间（秒），默认2小时
   session:

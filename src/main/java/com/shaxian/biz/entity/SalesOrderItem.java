@@ -30,13 +30,13 @@ public class SalesOrderItem {
     @Column(name = "product_code", nullable = false, length = 50)
     private String productCode;
 
-    @Column(name = "color_id", nullable = false)
+    @Column(name = "color_id")
     private Long colorId;
 
-    @Column(name = "color_name", nullable = false, length = 100)
+    @Column(name = "color_name", length = 100)
     private String colorName;
 
-    @Column(name = "color_code", nullable = false, length = 50)
+    @Column(name = "color_code", length = 50)
     private String colorCode;
 
     @Column(name = "batch_id")

@@ -24,9 +24,6 @@ public class Tenant {
     @Column(name = "expires_at")
     private LocalDateTime expiresAt;
 
-    @Column(name = "crm_customer_id")
-    private Long crmCustomerId;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private TenantStatus status = TenantStatus.ACTIVE;

@@ -2,8 +2,6 @@ package com.shaxian.tech.web;
 
 import com.shaxian.biz.auth.BizUserSessionManager;
 import com.shaxian.biz.auth.UserSession;
-import com.shaxian.crm.auth.CrmUserSessionManager;
-import com.shaxian.crm.auth.CrmUserSession;
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.FilterConfig;
@@ -39,12 +37,9 @@ public class RequestLoggingFilter implements Filter {
     private static final String SESSION_ID_PARAM = "sessionId";
 
     private final BizUserSessionManager bizUserSessionManager;
-    private final CrmUserSessionManager crmUserSessionManager;
 
-    public RequestLoggingFilter(BizUserSessionManager bizUserSessionManager,
-                                CrmUserSessionManager crmUserSessionManager) {
+    public RequestLoggingFilter(BizUserSessionManager bizUserSessionManager) {
         this.bizUserSessionManager = bizUserSessionManager;
-        this.crmUserSessionManager = crmUserSessionManager;
     }
 
     @Override
@@ -71,21 +66,11 @@ public class RequestLoggingFilter implements Filter {
             String sessionType = null;
 
             if (StringUtils.hasText(sessionId)) {
-                // 先尝试从 BIZ 会话管理器获取
                 UserSession bizUserSession = bizUserSessionManager.getSession(sessionId);
                 if (bizUserSession != null) {
                     userId = bizUserSession.getUserId();
                     tenantId = bizUserSession.getTenantId();
                     sessionType = "BIZ";
-                } else {
-                    // 尝试从 CRM 会话管理器获取
-                    CrmUserSession crmUserSession = crmUserSessionManager.getSession(sessionId);
-                    if (crmUserSession != null) {
-                        userId = crmUserSession.getUserId();
-                        // CRM 会话没有租户ID，设置为 null
-                        tenantId = null;
-                        sessionType = "CRM";
-                    }
                 }
             }
 

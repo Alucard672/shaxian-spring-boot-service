@@ -9,8 +9,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @SpringBootApplication(exclude = {
     RedisRepositoriesAutoConfiguration.class
 })
-@EntityScan(basePackages = {"com.shaxian.biz.entity", "com.shaxian.crm.entity"})
-@EnableJpaRepositories(basePackages = {"com.shaxian.biz.repository", "com.shaxian.crm.repository"})
+@EntityScan(basePackages = {"com.shaxian.biz.entity"})
+@EnableJpaRepositories(basePackages = {"com.shaxian.biz.repository"})
 public class ShaxianApplication {
     public static void main(String[] args) {
         SpringApplication.run(ShaxianApplication.class, args);

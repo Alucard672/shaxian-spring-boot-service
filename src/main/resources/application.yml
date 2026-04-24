@@ -70,14 +70,7 @@ product:
   share-code:
     secret-key: A0DA337652F46007EFD1DB4BA1F909CD3C6DD92AA6D0FF06EC1DBEF6C911F657
 
-# 会话配置（crm/biz 下必须使用 session 子键，勿写为 crm: 下一行 ": 7200" 等错误格式）
-crm:
-  admin-phones:
-    - 18267150617
-  session:
-    timeout: 7200
-    use-redis: false
-
+# 会话配置
 biz:
   session:
     timeout: 7200
