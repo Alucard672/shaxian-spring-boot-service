@@ -1,0 +1,68 @@
+# ============================
+# 生产环境配置 (prod profile)
+# ============================
+spring:
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/shaxian_erp?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+    username: shaxian_app
+    password: "${DB_PASSWORD:ShaxianApp2026!}"
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  jpa:
+    hibernate:
+      # 生产环境禁止自动DDL，所有表结构变更通过migration SQL手动执行
+      ddl-auto: none
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: false
+        use_sql_comments: false
+
+  # Redis 配置
+  redis:
+    host: 127.0.0.1
+    port: 6379
+    # TODO: 替换为生产Redis密码
+    password: "${REDIS_PASSWORD:ShaxianRedis2026!}"
+    database: 0
+    timeout: 2000ms
+    lettuce:
+      pool:
+        max-active: 16
+        max-wait: -1ms
+        max-idle: 8
+        min-idle: 2
+
+server:
+  port: 8080
+
+# 生产环境日志配置：关闭不必要的SQL日志
+logging:
+  level:
+    root: INFO
+    com.shaxian: INFO
+    org.springframework.web: WARN
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
+    org.hibernate.orm.jdbc.bind: WARN
+  file:
+    name: /web/logs/shaxian-server/catalina.out
+    max-size: 100MB
+    max-history: 30
+
+# 会话配置 - 生产环境使用Redis存储会话
+crm:
+  session:
+    timeout: 7200
+    use-redis: true
+
+biz:
+  session:
+    timeout: 7200
+    use-redis: true
