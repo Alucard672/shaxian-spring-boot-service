@@ -45,6 +45,11 @@ public class SalesAppService {
         salesService.deleteSales(id);
     }
 
+    /** 作废销售单 */
+    public SalesOrder cancelSales(Long id) {
+        return salesService.cancelSales(id);
+    }
+
     private SalesOrder buildOrderFromRequest(Object requestObj) {
         SalesOrder order = new SalesOrder();
         if (requestObj instanceof com.shaxian.biz.dto.sales.request.CreateSalesOrderRequest) {

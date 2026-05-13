@@ -98,6 +98,20 @@ public class SalesController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(ApiResponse.ok(null));
     }
 
+    @PostMapping("/{id}/cancel")
+    @Operation(summary = "作废销售订单",
+            description = "事务化作废：还库存（已出库时）+ 冲销未收款的关联应收账款（VOIDED）+ 订单状态置为 CANCELLED。已收过款的订单需要先冲销收款后才能作废。")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "作废成功"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "状态非法 / 已收款拒绝作废")
+    })
+    public ResponseEntity<ApiResponse<SalesOrder>> cancelSales(
+            @Parameter(description = "销售订单ID", required = true) @PathVariable Long id,
+            UserSession session) {
+        SalesOrder cancelled = salesAppService.cancelSales(id);
+        return ResponseEntity.ok(ApiResponse.ok("作废成功", cancelled));
+    }
+
     // 原 /check-stock 逻辑可以后续抽到库存模块的 service，这里暂时保留由前端改用统一库存接口
 }
 

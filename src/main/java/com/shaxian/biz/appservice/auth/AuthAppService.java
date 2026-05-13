@@ -3,8 +3,10 @@ package com.shaxian.biz.appservice.auth;
 import com.shaxian.biz.auth.BizUserSessionManager;
 import com.shaxian.biz.auth.UserSession;
 import com.shaxian.biz.entity.Tenant;
+import com.shaxian.biz.entity.TenantPackage;
 import com.shaxian.biz.entity.User;
 import com.shaxian.biz.entity.UserTenant;
+import com.shaxian.biz.repository.TenantPackageRepository;
 import com.shaxian.biz.repository.TenantRepository;
 import com.shaxian.biz.repository.UserRepository;
 import com.shaxian.biz.repository.UserTenantRepository;
@@ -14,12 +16,15 @@ import com.shaxian.biz.service.user.UserTenantService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Service
 public class AuthAppService {
+
+    private static final int DEFAULT_CONCURRENT_LIMIT = 3;
 
     private final AuthService authService;
     private final BizUserSessionManager bizUserSessionManager;
@@ -28,11 +33,13 @@ public class AuthAppService {
     private final TenantRepository tenantRepository;
     private final UserRepository userRepository;
     private final UserTenantService userTenantService;
+    private final TenantPackageRepository tenantPackageRepository;
 
     public AuthAppService(AuthService authService, BizUserSessionManager bizUserSessionManager,
                           UserService userService, UserTenantRepository userTenantRepository,
                           TenantRepository tenantRepository, UserRepository userRepository,
-                          UserTenantService userTenantService) {
+                          UserTenantService userTenantService,
+                          TenantPackageRepository tenantPackageRepository) {
         this.authService = authService;
         this.bizUserSessionManager = bizUserSessionManager;
         this.userService = userService;
@@ -40,6 +47,7 @@ public class AuthAppService {
         this.tenantRepository = tenantRepository;
         this.userRepository = userRepository;
         this.userTenantService = userTenantService;
+        this.tenantPackageRepository = tenantPackageRepository;
     }
 
     @Transactional
@@ -65,14 +73,51 @@ public class AuthAppService {
             throw new IllegalArgumentException("账户已被禁用");
         }
 
-        Tenant tenant = userService.findAndSetDefaultTenant(user.getId()).orElse(null);
+        Tenant tenant = null;
+        if (!user.isSuperAdmin()) {
+            tenant = userService.findAndSetDefaultTenant(user.getId()).orElse(null);
 
-        // 业务用户（非员工用户）必须关联租户才能登录
-        if (user.getEmployeeId() == null && tenant == null) {
-            throw new IllegalArgumentException("业务用户必须关联租户才能登录");
+            // 业务用户（非员工用户、非超级管理员）必须关联租户才能登录
+            if (user.getEmployeeId() == null && tenant == null) {
+                throw new IllegalArgumentException("业务用户必须关联租户才能登录");
+            }
+
+            // 租户状态/到期校验（AC-7）
+            if (tenant != null) {
+                if (tenant.getStatus() != Tenant.TenantStatus.ACTIVE) {
+                    throw new IllegalArgumentException("租户已停用，请联系平台运营");
+                }
+                if (tenant.getExpiresAt() != null && tenant.getExpiresAt().isBefore(LocalDateTime.now())) {
+                    throw new IllegalArgumentException("租户已到期，请联系平台运营");
+                }
+            }
+
+            // 并发裁剪（AC-8, AC-9）
+            // 同手机号顶号
+            bizUserSessionManager.evictByPhone(phone);
+            // 同租户上限裁剪到 < concurrentLimit
+            if (tenant != null) {
+                int concurrentLimit = resolveConcurrentLimit(tenant);
+                bizUserSessionManager.evictOldestForTenant(tenant.getId(), concurrentLimit);
+            }
+        } else {
+            // 超管也走同手机号顶号（同号在新设备登录踢前一个）
+            bizUserSessionManager.evictByPhone(phone);
         }
 
-        return bizUserSessionManager.createSession(user, tenant);
+        UserSession session = bizUserSessionManager.createSession(user, tenant);
+        // createSession 内部已经设置 superAdmin / tenantStatus / tenantExpiresAt / createdAt
+        return session;
+    }
+
+    private int resolveConcurrentLimit(Tenant tenant) {
+        Long packageId = tenant.getPackageId();
+        if (packageId == null) {
+            return DEFAULT_CONCURRENT_LIMIT;
+        }
+        return tenantPackageRepository.findById(packageId)
+                .map(TenantPackage::getConcurrentLimit)
+                .orElse(DEFAULT_CONCURRENT_LIMIT);
     }
 
     public Map<String, Object> switchTenant(String sessionId, Long tenantId) {
@@ -172,6 +217,7 @@ public class AuthAppService {
         userInfo.put("position", userSession.getPosition());
         userInfo.put("tenantId", userSession.getTenantId());
         userInfo.put("tenantName", userSession.getTenantName());
+        userInfo.put("isSuperAdmin", userSession.isSuperAdmin());
         return userInfo;
     }
 }

@@ -1,6 +1,9 @@
 package com.shaxian.biz.auth;
 
+import com.shaxian.biz.entity.Tenant;
 import lombok.Data;
+
+import java.time.LocalDateTime;
 
 /**
  * 用户会话信息
@@ -56,6 +59,26 @@ public class UserSession {
      * 租户代码
      */
     private String tenantCode;
+
+    /**
+     * 是否平台超级管理员
+     */
+    private boolean superAdmin;
+
+    /**
+     * 租户状态快照（拦截器读取，避免每请求查 DB）
+     */
+    private Tenant.TenantStatus tenantStatus;
+
+    /**
+     * 租户到期时间快照
+     */
+    private LocalDateTime tenantExpiresAt;
+
+    /**
+     * Session 创建时间（用于"顶最早"裁剪策略）
+     */
+    private LocalDateTime createdAt;
 
     public UserSession() {
     }

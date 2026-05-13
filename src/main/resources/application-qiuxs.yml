@@ -30,10 +30,8 @@ spring:
         max-idle: 8
         # 连接池中的最小空闲连接
         min-idle: 0
-# 会话配置
+# 会话配置（测试环境 qiuxs 默认用本地内存，避免依赖 Redis）
 biz:
-  # 会话超时时间（秒），默认2小时
   session:
     timeout: 7200
-    # 是否使用Redis存储会话，默认为true（使用Redis）
-    use-redis: true
+    use-redis: false

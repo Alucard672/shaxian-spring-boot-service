@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -34,6 +35,8 @@ public class RedisConfig {
         // 配置ObjectMapper
         ObjectMapper mapper = new ObjectMapper();
         mapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
+        // 注册 JSR310 模块，使 LocalDateTime/LocalDate 可序列化（UserSession.tenantExpiresAt / createdAt 等）
+        mapper.registerModule(new JavaTimeModule());
 
         // 使用BasicPolymorphicTypeValidator替代LaissezFaireSubTypeValidator
         BasicPolymorphicTypeValidator ptv = BasicPolymorphicTypeValidator.builder()

@@ -4,10 +4,12 @@ import com.shaxian.biz.api.ApiResponse;
 import com.shaxian.biz.appservice.auth.AuthAppService;
 import com.shaxian.biz.auth.UserSession;
 import com.shaxian.biz.dto.auth.request.RegisterRequest;
+import com.shaxian.biz.dto.auth.response.LoginSessionResponse;
 import com.shaxian.biz.entity.UserTenant;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -47,12 +49,23 @@ public class AuthController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "登录成功"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "用户名或密码错误")
     })
-    public ResponseEntity<ApiResponse<UserSession>> login(@RequestBody Map<String, String> loginRequest) {
+    public ResponseEntity<ApiResponse<LoginSessionResponse>> login(@RequestBody Map<String, String> loginRequest) {
         String phone = loginRequest.get("phone");
         String password = loginRequest.get("password");
 
         UserSession userSession = authAppService.login(phone, password);
-        return ResponseEntity.ok(ApiResponse.ok("登录成功", userSession));
+        return ResponseEntity.ok(ApiResponse.ok("登录成功", LoginSessionResponse.from(userSession)));
+    }
+
+    @GetMapping("/me")
+    @Operation(summary = "当前会话信息", description = "返回当前 session 的用户/租户信息和剩余天数；需要 X-Session-Id")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "查询成功"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "未登录或 session 失效")
+    })
+    public ResponseEntity<ApiResponse<LoginSessionResponse>> me(HttpServletRequest request) {
+        UserSession session = (UserSession) request.getAttribute("CURRENT_USER_SESSION");
+        return ResponseEntity.ok(ApiResponse.ok(LoginSessionResponse.from(session)));
     }
 
     @PostMapping("/logout")

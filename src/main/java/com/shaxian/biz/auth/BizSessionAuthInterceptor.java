@@ -1,6 +1,7 @@
 package com.shaxian.biz.auth;
 
 import com.shaxian.biz.api.ApiResponse;
+import com.shaxian.biz.entity.Tenant;
 import com.shaxian.biz.util.TenantContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
@@ -9,6 +10,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
+
+import java.time.LocalDateTime;
 
 /**
  * BIZ会话认证拦截器
@@ -21,6 +24,7 @@ public class BizSessionAuthInterceptor implements HandlerInterceptor {
     private static final String SESSION_ID_HEADER = "X-Session-Id";
     private static final String SESSION_ID_PARAM = "sessionId";
     private static final String CURRENT_USER_SESSION = "CURRENT_USER_SESSION";
+    private static final String ADMIN_URI_PREFIX = "/biz/api/admin/";
 
     private final BizUserSessionManager bizUserSessionManager;
     private final ObjectMapper objectMapper;
@@ -37,7 +41,7 @@ public class BizSessionAuthInterceptor implements HandlerInterceptor {
 
         if (sessionId == null || sessionId.isEmpty()) {
             logger.warn("请求缺少 sessionId: {}", request.getRequestURI());
-            writeErrorResponse(response, "缺少 sessionId");
+            writeErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "缺少 sessionId");
             return false;
         }
 
@@ -45,14 +49,36 @@ public class BizSessionAuthInterceptor implements HandlerInterceptor {
         UserSession userSession = bizUserSessionManager.getSession(sessionId);
         if (userSession == null) {
             logger.warn("无效的 sessionId: {}", sessionId);
-            writeErrorResponse(response, "无效的 sessionId");
+            writeErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "无效的 sessionId");
             return false;
         }
 
-        // 将租户ID设置到ThreadLocal中，供Hibernate多租户使用（允许为null，某些接口不需要租户）
+        // 租户状态/到期校验（用 session 内快照，避免每请求查 DB；AC-7, AC-13）
+        if (userSession.getTenantId() != null) {
+            if (userSession.getTenantStatus() != null
+                    && userSession.getTenantStatus() != Tenant.TenantStatus.ACTIVE) {
+                writeErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "租户已停用");
+                return false;
+            }
+            if (userSession.getTenantExpiresAt() != null
+                    && userSession.getTenantExpiresAt().isBefore(LocalDateTime.now())) {
+                writeErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "租户已到期");
+                return false;
+            }
+        }
+
+        // 管理端域权限校验（AC-16）
+        if (request.getRequestURI().startsWith(ADMIN_URI_PREFIX)) {
+            if (!userSession.isSuperAdmin()) {
+                writeErrorResponse(response, HttpServletResponse.SC_FORBIDDEN, "无管理后台权限");
+                return false;
+            }
+        }
+
+        // 将租户ID设置到ThreadLocal中，供Hibernate多租户使用
         TenantContext.setTenantId(userSession.getTenantId());
 
-        // 将 UserSession 存入请求属性，供后续参数解析器和业务层使用
+        // 将 UserSession 存入请求属性
         request.setAttribute(CURRENT_USER_SESSION, userSession);
 
         return true;
@@ -81,8 +107,8 @@ public class BizSessionAuthInterceptor implements HandlerInterceptor {
     /**
      * 写入错误响应
      */
-    private void writeErrorResponse(HttpServletResponse response, String message) throws Exception {
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+    private void writeErrorResponse(HttpServletResponse response, int status, String message) throws Exception {
+        response.setStatus(status);
         response.setContentType("application/json;charset=UTF-8");
         ApiResponse<Void> errorResponse = ApiResponse.fail(message);
         response.getWriter().write(objectMapper.writeValueAsString(errorResponse));

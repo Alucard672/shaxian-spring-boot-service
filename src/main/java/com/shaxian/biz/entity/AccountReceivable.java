@@ -65,7 +65,12 @@ public class AccountReceivable {
     }
 
     public enum AccountStatus {
-        UNPAID, PAID
+        /** 未收款 */
+        UNPAID,
+        /** 已收款 */
+        PAID,
+        /** 已作废（销售单作废时冲销） */
+        VOIDED
     }
 }
 

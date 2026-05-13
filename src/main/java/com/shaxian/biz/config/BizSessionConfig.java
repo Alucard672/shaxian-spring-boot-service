@@ -6,6 +6,7 @@ import com.shaxian.biz.auth.impl.RedisBizUserSessionManager;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 /**
  * BIZ会话管理配置类
@@ -21,6 +22,7 @@ public class BizSessionConfig {
     private boolean useRedis;
 
     @Bean
+    @Primary
     public BizUserSessionManager bizUserSessionManager(LocalMapBizUserSessionManager localMapSessionManager,
                                                       RedisBizUserSessionManager redisSessionManager) {
         if (useRedis) {

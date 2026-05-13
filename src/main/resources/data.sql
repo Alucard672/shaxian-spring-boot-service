@@ -68,3 +68,18 @@ INSERT IGNORE INTO employees (id, name, phone, role, password, status, created_a
     CURRENT_TIMESTAMP
 );
 
+-- 平台超级管理员（管理端登录用，不属于任何租户）
+-- 初始密码：Admin@123456，登录后请尽快修改
+INSERT IGNORE INTO users (phone, name, password, status, is_super_admin, created_at, updated_at) VALUES (
+    '13003629527',
+    '平台超级管理员',
+    'Admin@123456',
+    'ACTIVE',
+    TRUE,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
+);
+
+-- 兼容旧数据：把指定手机号提升为超级管理员
+UPDATE users SET is_super_admin = TRUE WHERE phone = '13003629527';
+

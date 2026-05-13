@@ -15,5 +15,8 @@ public interface AccountReceivableRepository extends JpaRepository<AccountReceiv
            "(:status IS NULL OR CAST(ar.status AS string) = :status) " +
            "ORDER BY ar.accountDate DESC")
     List<AccountReceivable> findByFilters(@Param("customerId") Long customerId, @Param("status") String status);
+
+    /** 按销售单 ID 查关联应收账款（作废销售单时冲销用） */
+    List<AccountReceivable> findBySalesOrderId(Long salesOrderId);
 }
 

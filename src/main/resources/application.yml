@@ -70,8 +70,8 @@ product:
   share-code:
     secret-key: A0DA337652F46007EFD1DB4BA1F909CD3C6DD92AA6D0FF06EC1DBEF6C911F657
 
-# 会话配置
+# 会话配置（生产用 Redis，确保多实例/重启不丢 session）
 biz:
   session:
     timeout: 7200
-    use-redis: false
+    use-redis: true

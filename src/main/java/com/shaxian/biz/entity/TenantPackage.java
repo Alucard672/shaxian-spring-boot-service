@@ -2,37 +2,30 @@ package com.shaxian.biz.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
 @Entity
-@Table(name = "tenants")
-public class Tenant {
+@Table(name = "packages", uniqueConstraints = @UniqueConstraint(columnNames = "name"))
+public class TenantPackage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 200)
+    @Column(nullable = false, length = 100)
     private String name;
 
-    @Column(nullable = false, unique = true, length = 50)
-    private String code;
+    @Column(name = "concurrent_limit", nullable = false)
+    private Integer concurrentLimit;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
-    private String address;
-
-    @Column(name = "expires_at")
-    private LocalDateTime expiresAt;
+    @Column(name = "yearly_price", nullable = false, precision = 10, scale = 2)
+    private BigDecimal yearlyPrice;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private TenantStatus status = TenantStatus.ACTIVE;
-
-    @Column(name = "package_id")
-    private Long packageId;
-
-    @Column(name = "assigned_user_id")
-    private Long assignedUserId;
+    private PackageStatus status = PackageStatus.ACTIVE;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -51,7 +44,7 @@ public class Tenant {
         updatedAt = LocalDateTime.now();
     }
 
-    public enum TenantStatus {
+    public enum PackageStatus {
         ACTIVE, INACTIVE
     }
 }

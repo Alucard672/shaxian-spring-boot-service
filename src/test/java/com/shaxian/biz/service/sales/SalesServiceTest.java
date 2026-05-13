@@ -4,6 +4,7 @@ import com.shaxian.biz.entity.Batch;
 import com.shaxian.biz.entity.SalesOrder;
 import com.shaxian.biz.entity.SalesOrderItem;
 import com.shaxian.biz.entity.SystemParams;
+import com.shaxian.biz.repository.AccountReceivableRepository;
 import com.shaxian.biz.repository.BatchRepository;
 import com.shaxian.biz.repository.SalesOrderItemRepository;
 import com.shaxian.biz.repository.SalesOrderRepository;
@@ -39,12 +40,14 @@ class SalesServiceTest {
     private BatchRepository batchRepository;
     @Mock
     private SystemParamsService systemParamsService;
+    @Mock
+    private AccountReceivableRepository accountReceivableRepository;
 
     private SalesService salesService;
 
     @BeforeEach
     void setUp() {
-        salesService = new SalesService(salesOrderRepository, salesOrderItemRepository, batchRepository, systemParamsService);
+        salesService = new SalesService(salesOrderRepository, salesOrderItemRepository, batchRepository, systemParamsService, accountReceivableRepository);
     }
 
     private void mockSystemParamsAllowNegativeStock(boolean allow) {

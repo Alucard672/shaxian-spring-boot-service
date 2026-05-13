@@ -31,6 +31,9 @@ public class User {
     @Column(nullable = false)
     private UserStatus status = UserStatus.ACTIVE;
 
+    @Column(name = "is_super_admin", nullable = false)
+    private boolean superAdmin = false;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
